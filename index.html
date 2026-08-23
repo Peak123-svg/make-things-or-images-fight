@@ -172,20 +172,6 @@
             z-index: 10;
         }
 
-        .weapon-badge {
-            position: absolute;
-            bottom: 5px;
-            right: 5px;
-            background: #333;
-            color: #ffcc00;
-            padding: 2px 5px;
-            font-size: 10px;
-            font-weight: bold;
-            border-radius: 3px;
-            border: 1px solid #666;
-            z-index: 10;
-        }
-
         .projectile {
             position: absolute;
             width: 24px;
@@ -321,27 +307,67 @@
         ];
 
         const mapPool = [
+            // Stage 1: Classic Flat Floor
             [ { x: 750, y: 950, w: 1500, h: 60 } ],
+            // Stage 2: Twin Towers
             [
                 { x: 600, y: 1000, w: 600, h: 50 },
                 { x: 1800, y: 1000, w: 600, h: 50 },
                 { x: 1100, y: 800, w: 800, h: 50 }
             ],
+            // Stage 3: Three Stepping Stones
             [
                 { x: 500, y: 1100, w: 400, h: 50 },
                 { x: 1300, y: 950, w: 400, h: 50 },
                 { x: 2100, y: 1100, w: 400, h: 50 }
             ],
+            // Stage 4: Central Fortress
             [
                 { x: 1000, y: 900, w: 1000, h: 80 },
                 { x: 700, y: 700, w: 300, h: 40 },
                 { x: 2000, y: 700, w: 300, h: 40 }
             ],
+            // Stage 5: Multi-Tier Staircase
             [
                 { x: 400, y: 1100, w: 500, h: 40 },
                 { x: 1100, y: 950, w: 800, h: 40 },
                 { x: 2100, y: 1100, w: 500, h: 40 },
                 { x: 1250, y: 700, w: 500, h: 40 }
+            ],
+            // Stage 6: The Pit of Despair
+            [
+                { x: 500, y: 1000, w: 500, h: 40 },
+                { x: 2000, y: 1000, w: 500, h: 40 },
+                { x: 1150, y: 1200, w: 700, h: 40 },
+                { x: 1250, y: 800, w: 500, h: 40 }
+            ],
+            // Stage 7: Vertical Tower Climb
+            [
+                { x: 1000, y: 1200, w: 1000, h: 40 },
+                { x: 1200, y: 1000, w: 600, h: 40 },
+                { x: 1300, y: 800, w: 400, h: 40 },
+                { x: 1400, y: 600, w: 200, h: 40 }
+            ],
+            // Stage 8: Floating Islands
+            [
+                { x: 400, y: 900, w: 350, h: 40 },
+                { x: 900, y: 1050, w: 350, h: 40 },
+                { x: 1400, y: 900, w: 350, h: 40 },
+                { x: 1900, y: 1050, w: 350, h: 40 },
+                { x: 2350, y: 900, w: 350, h: 40 }
+            ],
+            // Stage 9: Dual Bridges
+            [
+                { x: 500, y: 850, w: 800, h: 40 },
+                { x: 1700, y: 850, w: 800, h: 40 },
+                { x: 900, y: 1150, w: 1200, h: 40 }
+            ],
+            // Stage 10: Pyramid Step
+            [
+                { x: 750, y: 1100, w: 1500, h: 50 },
+                { x: 950, y: 950, w: 1100, h: 50 },
+                { x: 1150, y: 800, w: 700, h: 50 },
+                { x: 1350, y: 650, w: 300, h: 50 }
             ]
         ];
 
@@ -393,7 +419,6 @@
             }
         }
 
-        // Initialize default setup inputs on load
         updateFighterInputs();
 
         function setCameraMode(mode) {
@@ -454,13 +479,8 @@
                 userTag.className = 'username-tag';
                 userTag.innerText = `[${assignedTeam === 'team1' ? teamNames.team1 : teamNames.team2}] ${fighterName}`;
 
-                let weaponBadge = document.createElement('div');
-                weaponBadge.className = 'weapon-badge';
-                weaponBadge.innerText = assignedWeapon.name;
-
                 wrapper.appendChild(userTag);
                 wrapper.appendChild(imgEl);
-                wrapper.appendChild(weaponBadge);
                 fightersContainer.appendChild(wrapper);
 
                 let spawnX = 500 + (i * (1800 / count));
@@ -497,7 +517,6 @@
             if (fighter.hp <= 0) return;
             if (fighter.cooldown > 0) fighter.cooldown--;
 
-            // Filter targets to ONLY target enemies (fighters on a different team)
             let enemyTargets = targets.filter(t => t.hp > 0 && t.team !== fighter.team);
             if (enemyTargets.length === 0) return;
 
@@ -594,7 +613,6 @@
                         fB.x += pushDir * 2;
                     }
 
-                    // Only physical crash-attacks if they are on different teams
                     let distance = Math.hypot((fA.x + size/2) - (fB.x + size/2), (fA.y + size/2) - (fB.y + size/2));
                     if (distance < size && fA.team !== fB.team) {
                         let angle = Math.atan2((fA.y + size/2) - (fB.y + size/2), (fA.x + size/2) - (fB.x + size/2));
@@ -625,7 +643,6 @@
                 let ownerFighter = fighters.find(f => f.id === p.ownerId);
 
                 for (let f of fighters) {
-                    // Projectile hits enemies only
                     if (ownerFighter && f.team !== ownerFighter.team && f.hp > 0) {
                         let tDist = Math.hypot(p.x - (f.x + size/2), p.y - (f.y + size/2));
                         if (tDist < size/2) {
@@ -685,7 +702,7 @@
                     ownerId: attacker.id,
                     el: pEl
                 });
-                showWorldText(attacker.x, attacker.y, `${attacker.name}: ${attacker.weapon.name} ${baseAttack.name}`);
+                showWorldText(attacker.x, attacker.y, `${attacker.name}: ${baseAttack.name}`);
             } else if (attacker.weapon.type === "lightning" || baseAttack.type === "lightning") {
                 target.hp -= finalDamage;
                 target.vy -= baseAttack.kb * 0.7;
@@ -724,7 +741,7 @@
                     target.hp = 0;
                     target.wrapperEl.style.opacity = '0';
                 }
-                showWorldText(target.x, target.y, `${attacker.name}'s ${attacker.weapon.name} Hit! (-${finalDamage})`);
+                showWorldText(target.x, target.y, `${attacker.name} Hit! (-${finalDamage})`);
                 updateHUD();
                 checkWin();
             }
@@ -796,7 +813,6 @@
 
                 document.getElementById('winner-text').innerText = `${winningTeamLabel} Wins!`;
                 
-                // Show first alive winner's image if available, otherwise first fighter's image
                 let sampleWinner = aliveFighters.length > 0 ? aliveFighters[0] : fighters[0];
                 document.getElementById('winner-img').src = sampleWinner.wrapperEl.querySelector('.fighter').src;
                 document.getElementById('winner-banner').style.display = 'block';
