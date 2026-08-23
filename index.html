@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Brawler Arena</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #setup-screen {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        .fighter-inputs {
+            display: flex;
+            gap: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #ff6b81;
+        }
+
+        #game-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #hud {
+            display: flex;
+            justify-content: space-between;
+            width: 800px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        #arena {
+            width: 800px;
+            height: 500px;
+            border: 4px solid #fff;
+            position: relative;
+            background: #000;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+
+        .fighter {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #fff;
+        }
+
+        .floating-text {
+            position: absolute;
+            font-weight: bold;
+            font-size: 18px;
+            color: #ff4757;
+            animation: floatUp 0.8s ease-out forwards;
+            pointer-events: none;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-40px); opacity: 0; }
+        }
+
+        #winner-banner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 50px;
+            font-weight: bold;
+            color: #2ed573;
+            text-shadow: 2px 2px 8px #000;
+            display: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Setup Screen -->
+    <div id="setup-screen">
+        <h2>Upload 2 Images to Battle</h2>
+        <div class="fighter-inputs">
+            <div class="input-group">
+                <label>Fighter 1</label>
+                <input type="file" id="img1-input" accept="image/*">
+            </div>
+            <div class="input-group">
+                <label>Fighter 2</label>
+                <input type="file" id="img2-input" accept="image/*">
+            </div>
+        </div>
+        <button onclick="startBattle()">Start Fight!</button>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen">
+        <div id="hud">
+            <div id="hp1">Fighter 1 HP: 1000</div>
+            <div id="hp2">Fighter 2 HP: 1000</div>
+        </div>
+        <div id="arena">
+            <div id="winner-banner"></div>
+            <img id="fighter1" class="fighter" src="">
+            <img id="fighter2" class="fighter" src="">
+        </div>
+    </div>
+
+    <!-- Background Music -->
+    <audio id="bgm" loop>
+        <source src="https://raw.githubusercontent.com/Peak123-svg/make-things-or-images-fight/main/Roblox%20Music%20-%20Gothic%20-%20Zero%20Project%204.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        let f1 = { x: 50, y: 50, vx: 3, vy: 2.5, hp: 1000, el: document.getElementById('fighter1') };
+        let f2 = { x: 650, y: 350, vx: -3, vy: -2.5, hp: 1000, el: document.getElementById('fighter2') };
+        const arenaWidth = 800;
+        const arenaHeight = 500;
+        const size = 80;
+        let gameRunning = false;
+
+        function startBattle() {
+            const file1 = document.getElementById('img1-input').files[0];
+            const file2 = document.getElementById('img2-input').files[0];
+
+            if (!file1 || !file2) {
+                alert("Please upload both images!");
+                return;
+            }
+
+            f1.el.src = URL.createObjectURL(file1);
+            f2.el.src = URL.createObjectURL(file2);
+
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'flex';
+
+            // Play gothic music
+            const music = document.getElementById('bgm');
+            music.play().catch(e => console.log("Audio autoplay blocked:", e));
+
+            gameRunning = true;
+            requestAnimationFrame(updateGame);
+        }
+
+        function updateGame() {
+            if (!gameRunning) return;
+
+            // Move fighters
+            f1.x += f1.vx;
+            f1.y += f1.vy;
+            f2.x += f2.vx;
+            f2.y += f2.vy;
+
+            // DVD Bounce logic - Fighter 1
+            if (f1.x <= 0 || f1.x >= arenaWidth - size) { f1.vx *= -1; triggerAttack(1); }
+            if (f1.y <= 0 || f1.y >= arenaHeight - size) { f1.vy *= -1; triggerAttack(1); }
+
+            // DVD Bounce logic - Fighter 2
+            if (f2.x <= 0 || f2.x >= arenaWidth - size) { f2.vx *= -1; triggerAttack(2); }
+            if (f2.y <= 0 || f2.y >= arenaHeight - size) { f2.vy *= -1; triggerAttack(2); }
+
+            // Collision check between fighters
+            let dx = (f1.x + size/2) - (f2.x + size/2);
+            let dy = (f1.y + size/2) - (f2.y + size/2);
+            let distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < size) {
+                // Swap velocities on crash
+                let tempVx = f1.vx; let tempVy = f1.vy;
+                f1.vx = f2.vx; f1.vy = f2.vy;
+                f2.vx = tempVx; f2.vy = tempVy;
+                
+                triggerAttack(1);
+                triggerAttack(2);
+            }
+
+            // Update DOM positions
+            f1.el.style.left = f1.x + 'px';
+            f1.el.style.top = f1.y + 'px';
+            f2.el.style.left = f2.x + 'px';
+            f2.el.style.top = f2.y + 'px';
+
+            requestAnimationFrame(updateGame);
+        }
+
+        function triggerAttack(attackerNum) {
+            if (!gameRunning) return;
+
+            const attacks = [
+                { name: "Punch!", damage: 35 },
+                { name: "Projectile Blast!", damage: 60 },
+                { name: "Gothic Slash!", damage: 45 },
+                { name: "Shadow Kick!", damage: 30 }
+            ];
+
+            let randomAttack = attacks[Math.floor(Math.random() * attacks.length)];
+            
+            let target = attackerNum === 1 ? f2 : f1;
+            let attackerObj = attackerNum === 1 ? f1 : f2;
+
+            target.hp -= randomAttack.damage;
+            if (target.hp < 0) target.hp = 0;
+
+            // Update HUD
+            document.getElementById('hp1').innerText = `Fighter 1 HP: ${f1.hp}`;
+            document.getElementById('hp2').innerText = `Fighter 2 HP: ${f2.hp}`;
+
+            // Show floating combat text
+            showFloatingText(attackerObj.x, attackerObj.y, randomAttack.name);
+
+            // Check for death
+            if (target.hp <= 0) {
+                gameRunning = false;
+                let winnerName = attackerNum === 1 ? "Opponent 1" : "Opponent 2";
+                let banner = document.getElementById('winner-banner');
+                banner.innerText = `${winnerName} Wins!`;
+                banner.style.display = 'block';
+
+                setTimeout(() => {
+                    location.reload();
+                }, 3500);
+            }
+        }
+
+        function showFloatingText(x, y, text) {
+            let floatEl = document.createElement('div');
+            floatEl.className = 'floating-text';
+            floatEl.innerText = text;
+            floatEl.style.left = x + 'px';
+            floatEl.style.top = y + 'px';
+            document.getElementById('arena').appendChild(floatEl);
+
+            setTimeout(() => {
+                floatEl.remove();
+            }, 800);
+        }
+    </script>
+</body>
+</html>
