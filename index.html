@@ -26,13 +26,16 @@
             padding: 30px;
             border-radius: 4px;
             text-align: center;
-            width: 400px;
+            width: 450px;
         }
 
         .fighter-inputs {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 5px;
         }
 
         .input-group {
@@ -68,8 +71,11 @@
             display: flex;
             justify-content: space-between;
             width: 900px;
-            font-size: 18px;
+            font-size: 14px;
             font-weight: bold;
+            overflow-x: auto;
+            white-space: nowrap;
+            max-width: 900px;
         }
 
         #camera-controls {
@@ -182,15 +188,19 @@
 <body>
 
     <div id="setup-screen">
-        <h2>Npc Maker</h2>
-        <div class="fighter-inputs">
+        <h2>Npc Maker Arena</h2>
+        <div class="input-group">
+            <label>Number of Fighters:</label>
+            <input type="number" id="fighter-count" min="2" value="2" onchange="updateFighterInputs()" style="padding: 6px; background: #333; color: white; border: 1px solid #555;">
+        </div>
+        <div class="fighter-inputs" id="fighter-inputs-container">
             <div class="input-group">
-                <label>Fighter 1 Image</label>
-                <input type="file" id="img1-input" accept="image/*">
+                <label>Fighter 1</label>
+                <input type="file" id="img0-input" accept="image/*">
             </div>
             <div class="input-group">
-                <label>Fighter 2 Image</label>
-                <input type="file" id="img2-input" accept="image/*">
+                <label>Fighter 2</label>
+                <input type="file" id="img1-input" accept="image/*">
             </div>
         </div>
         <button onclick="startBattle()">Start Fight</button>
@@ -198,14 +208,11 @@
 
     <div id="game-screen">
         <div id="hud">
-            <div id="hp1">Fighter 1 HP: 1000</div>
+            <div id="hud-stats"></div>
             <div id="camera-controls">
                 <button onclick="setCameraMode('dynamic')">Cam: Dynamic</button>
-                <button onclick="setCameraMode('f1')">Track F1</button>
-                <button onclick="setCameraMode('f2')">Track F2</button>
                 <button onclick="setCameraMode('zoomout')">Zoom Out</button>
             </div>
-            <div id="hp2">Fighter 2 HP: 1000</div>
         </div>
         <div id="viewport">
             <div id="world">
@@ -214,8 +221,7 @@
                     <div id="winner-text"></div>
                     <img id="winner-img" src="" alt="Winner">
                 </div>
-                <img id="fighter1" class="fighter" src="">
-                <img id="fighter2" class="fighter" src="">
+                <div id="fighters-container"></div>
             </div>
         </div>
     </div>
@@ -229,35 +235,34 @@
         const worldHeight = 1800;
         const size = 140;
 
-        let f1 = { x: 900, y: 800, vx: 0, vy: 0, hp: 1000, cooldown: 0, el: document.getElementById('fighter1') };
-        let f2 = { x: 2000, y: 800, vx: 0, vy: 0, hp: 1000, cooldown: 0, el: document.getElementById('fighter2') };
-        
+        let fighters = [];
         let projectiles = [];
         let gameRunning = false;
         let cameraMode = 'dynamic';
         let currentPlatforms = [];
 
-        // Map Layout Pool
         const mapPool = [
-            // Map 1: Classic Wide Platform
             [ { x: 750, y: 950, w: 1500, h: 60 } ],
-            // Map 2: Three Tier Platforms
             [
                 { x: 600, y: 1000, w: 600, h: 50 },
                 { x: 1800, y: 1000, w: 600, h: 50 },
                 { x: 1100, y: 800, w: 800, h: 50 }
             ],
-            // Map 3: Floating Pillars
             [
                 { x: 500, y: 1100, w: 400, h: 50 },
                 { x: 1300, y: 950, w: 400, h: 50 },
                 { x: 2100, y: 1100, w: 400, h: 50 }
             ],
-            // Map 4: Massive Central Fortress
             [
                 { x: 1000, y: 900, w: 1000, h: 80 },
                 { x: 700, y: 700, w: 300, h: 40 },
                 { x: 2000, y: 700, w: 300, h: 40 }
+            ],
+            [
+                { x: 400, y: 1100, w: 500, h: 40 },
+                { x: 1100, y: 950, w: 800, h: 40 },
+                { x: 2100, y: 1100, w: 500, h: 40 },
+                { x: 1250, y: 700, w: 500, h: 40 }
             ]
         ];
 
@@ -273,8 +278,26 @@
             { name: "Sonic Blast", damage: 120, type: "projectile", kb: 30 },
             { name: "God Smash", damage: 200, type: "lightning", kb: 55 },
             { name: "Plasma Ray", damage: 130, type: "projectile", kb: 33 },
-            { name: "Earth Shatter", damage: 170, type: "melee", kb: 48 }
+            { name: "Earth Shatter", damage: 170, type: "melee", kb: 48 },
+            { name: "Ice Spike", damage: 105, type: "projectile", kb: 29 },
+            { name: "Vortex Kick", damage: 125, type: "melee", kb: 42 },
+            { name: "Solar Flare", damage: 190, type: "lightning", kb: 50 }
         ];
+
+        function updateFighterInputs() {
+            let count = parseInt(document.getElementById('fighter-count').value);
+            if (isNaN(count) || count < 2) count = 2;
+            let container = document.getElementById('fighter-inputs-container');
+            container.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                container.innerHTML += `
+                    <div class="input-group">
+                        <label>Fighter ${i + 1}</label>
+                        <input type="file" id="img${i}-input" accept="image/*">
+                    </div>
+                `;
+            }
+        }
 
         function setCameraMode(mode) {
             cameraMode = mode;
@@ -284,7 +307,6 @@
             const container = document.getElementById('platforms-container');
             container.innerHTML = '';
             
-            // Pick random map
             let randomMap = mapPool[Math.floor(Math.random() * mapPool.length)];
             currentPlatforms = randomMap;
 
@@ -300,16 +322,39 @@
         }
 
         function startBattle() {
-            const file1 = document.getElementById('img1-input').files[0];
-            const file2 = document.getElementById('img2-input').files[0];
+            let count = parseInt(document.getElementById('fighter-count').value);
+            if (isNaN(count) || count < 2) count = 2;
+            fighters = [];
 
-            if (!file1 || !file2) {
-                alert("Please upload both images!");
-                return;
+            let fightersContainer = document.getElementById('fighters-container');
+            fightersContainer.innerHTML = '';
+
+            for (let i = 0; i < count; i++) {
+                let fileInput = document.getElementById(`img${i}-input`);
+                if (!fileInput || !fileInput.files[0]) {
+                    alert(`Please upload images for all ${count} fighters!`);
+                    return;
+                }
+
+                let imgEl = document.createElement('img');
+                imgEl.className = 'fighter';
+                imgEl.src = URL.createObjectURL(fileInput.files[0]);
+                fightersContainer.appendChild(imgEl);
+
+                // Spread them out across the stage width
+                let spawnX = 500 + (i * (1800 / count));
+
+                fighters.push({
+                    id: i + 1,
+                    x: spawnX,
+                    y: 700,
+                    vx: 0,
+                    vy: 0,
+                    hp: 1000,
+                    cooldown: 0,
+                    el: imgEl
+                });
             }
-
-            f1.el.src = URL.createObjectURL(file1);
-            f2.el.src = URL.createObjectURL(file2);
 
             loadRandomMap();
 
@@ -319,17 +364,26 @@
             const music = document.getElementById('bgm');
             music.play().catch(e => console.log("Audio autoplay blocked:", e));
 
+            updateHUD();
             gameRunning = true;
             requestAnimationFrame(updateGame);
         }
 
-        function updateBotAI(fighter, opponent) {
+        function updateBotAI(fighter, targets) {
             if (fighter.cooldown > 0) fighter.cooldown--;
 
-            let targetX = opponent.x;
-            let dx = targetX - fighter.x;
-            
-            if (Math.abs(dx) > 30) {
+            let closest = targets[0];
+            let minDist = Infinity;
+            for (let t of targets) {
+                let d = Math.hypot(t.x - fighter.x, t.y - fighter.y);
+                if (d < minDist) {
+                    minDist = d;
+                    closest = t;
+                }
+            }
+
+            let dx = closest.x - fighter.x;
+            if (Math.abs(dx) > 35) {
                 fighter.vx += Math.sign(dx) * 0.7;
             }
             fighter.vx *= 0.85;
@@ -337,17 +391,20 @@
             fighter.vx = Math.max(-10, Math.min(10, fighter.vx));
             fighter.x += fighter.vx;
 
-            fighter.vy += 0.8; // Gravity
+            let prevY = fighter.y;
+            fighter.vy += 0.8;
             fighter.y += fighter.vy;
 
-            // Check collision with any platform in the current map layout
             let landedOnPlatform = false;
             for (let p of currentPlatforms) {
+                let prevBottom = prevY + size;
+                let currBottom = fighter.y + size;
+
                 if (
                     fighter.x + size > p.x &&
                     fighter.x < p.x + p.w &&
-                    fighter.y + size >= p.y &&
-                    fighter.y + size <= p.y + 20 &&
+                    prevBottom <= p.y + 10 &&
+                    currBottom >= p.y &&
                     fighter.vy >= 0
                 ) {
                     fighter.y = p.y - size;
@@ -357,12 +414,10 @@
                 }
             }
 
-            // Only allow jumping if they are securely standing on a platform (fixes air-jump spam)
-            if (landedOnPlatform && Math.random() < 0.006) {
-                fighter.vy = -15;
+            if (landedOnPlatform && Math.random() < 0.005) {
+                fighter.vy = -14;
             }
 
-            // Fall damage / respawn off map
             if (fighter.y > 1650) {
                 fighter.hp -= 30;
                 if (fighter.hp < 0) fighter.hp = 0;
@@ -372,7 +427,7 @@
 
                 fighter.y = 600;
                 fighter.vy = -10;
-                fighter.x = 1200 + (Math.random() * 600 - 300);
+                fighter.x = 1000 + (Math.random() * 800 - 400);
             }
 
             if (fighter.x < 50) { fighter.x = 50; fighter.vx *= -1; }
@@ -382,25 +437,40 @@
         function updateGame() {
             if (!gameRunning) return;
 
-            updateBotAI(f1, f2);
-            updateBotAI(f2, f1);
+            for (let i = 0; i < fighters.length; i++) {
+                let otherTargets = fighters.filter((_, idx) => idx !== i);
+                updateBotAI(fighters[i], otherTargets);
+            }
 
-            let dx = (f1.x + size/2) - (f2.x + size/2);
-            let dy = (f1.y + size/2) - (f2.y + size/2);
-            let distance = Math.hypot(dx, dy);
+            for (let i = 0; i < fighters.length; i++) {
+                for (let j = i + 1; j < fighters.length; j++) {
+                    let fA = fighters[i];
+                    let fB = fighters[j];
+                    let stackDx = fB.x - fA.x;
+                    let stackDy = fB.y - fA.y;
+                    let stackDist = Math.hypot(stackDx, stackDy);
+                    if (stackDist < size * 0.75) {
+                        let pushDir = stackDx >= 0 ? 1 : -1;
+                        fA.x -= pushDir * 2;
+                        fB.x += pushDir * 2;
+                    }
 
-            if (distance < size) {
-                let angle = Math.atan2(dy, dx);
-                f1.vx = Math.cos(angle) * 30;
-                f1.vy = -16;
-                f2.vx = -Math.cos(angle) * 30;
-                f2.vy = -16;
+                    let distance = Math.hypot((fA.x + size/2) - (fB.x + size/2), (fA.y + size/2) - (fB.y + size/2));
+                    if (distance < size) {
+                        let angle = Math.atan2((fA.y + size/2) - (fB.y + size/2), (fA.x + size/2) - (fB.x + size/2));
+                        fA.vx = Math.cos(angle) * 25;
+                        fA.vy = -14;
+                        fB.vx = -Math.cos(angle) * 25;
+                        fB.vy = -14;
 
-                if (f1.cooldown === 0 && f2.cooldown === 0) {
-                    let attacker = Math.random() > 0.5 ? 1 : 2;
-                    triggerRandomAttack(attacker);
-                    f1.cooldown = 70;
-                    f2.cooldown = 70;
+                        if (fA.cooldown === 0 && fB.cooldown === 0) {
+                            let attacker = Math.random() > 0.5 ? fA : fB;
+                            let target = attacker === fA ? fB : fA;
+                            triggerRandomAttack(attacker, target);
+                            fA.cooldown = 70;
+                            fB.cooldown = 70;
+                        }
+                    }
                 }
             }
 
@@ -411,15 +481,23 @@
                 p.el.style.left = p.x + 'px';
                 p.el.style.top = p.y + 'px';
 
-                let target = p.owner === 1 ? f2 : f1;
-                let tDist = Math.hypot(p.x - (target.x + size/2), p.y - (target.y + size/2));
+                let hitTarget = null;
+                for (let f of fighters) {
+                    if (f.id !== p.ownerId) {
+                        let tDist = Math.hypot(p.x - (f.x + size/2), p.y - (f.y + size/2));
+                        if (tDist < size/2) {
+                            hitTarget = f;
+                            break;
+                        }
+                    }
+                }
 
-                if (tDist < size/2) {
-                    target.hp -= p.damage;
-                    target.vy -= p.kb * 0.6;
-                    target.vx += (p.vx > 0 ? 25 : -25);
-                    if (target.hp < 0) target.hp = 0;
-                    showWorldText(target.x, target.y, `Hit! (-${p.damage})`);
+                if (hitTarget) {
+                    hitTarget.hp -= p.damage;
+                    hitTarget.vy -= p.kb * 0.6;
+                    hitTarget.vx += (p.vx > 0 ? 25 : -25);
+                    if (hitTarget.hp < 0) hitTarget.hp = 0;
+                    showWorldText(hitTarget.x, hitTarget.y, `Hit! (-${p.damage})`);
                     updateHUD();
                     p.el.remove();
                     projectiles.splice(i, 1);
@@ -430,21 +508,18 @@
                 }
             }
 
-            f1.el.style.left = f1.x + 'px';
-            f1.el.style.top = f1.y + 'px';
-            f2.el.style.left = f2.x + 'px';
-            f2.el.style.top = f2.y + 'px';
+            for (let f of fighters) {
+                f.el.style.left = f.x + 'px';
+                f.el.style.top = f.y + 'px';
+            }
 
             updateCamera();
-
             requestAnimationFrame(updateGame);
         }
 
-        function triggerRandomAttack(attackerNum) {
+        function triggerRandomAttack(attacker, target) {
             if (!gameRunning) return;
             let atk = massiveAttackPool[Math.floor(Math.random() * massiveAttackPool.length)];
-            let attacker = attackerNum === 1 ? f1 : f2;
-            let target = attackerNum === 1 ? f2 : f1;
 
             if (atk.type === "projectile") {
                 let angle = Math.atan2((target.y + size/2) - (attacker.y + size/2), (target.x + size/2) - (attacker.x + size/2));
@@ -459,7 +534,7 @@
                     vy: Math.sin(angle) * 22,
                     damage: atk.damage,
                     kb: atk.kb,
-                    owner: attackerNum,
+                    ownerId: attacker.id,
                     el: pEl
                 });
                 showWorldText(attacker.x, attacker.y, atk.name);
@@ -507,20 +582,25 @@
             let camX = 0, camY = 0, scale = 1.0;
 
             if (cameraMode === 'dynamic') {
-                let midX = (f1.x + f2.x) / 2 + size/2;
-                let midY = (f1.y + f2.y) / 2 + size/2;
-                let fighterDist = Math.hypot(f1.x - f2.x, f1.y - f2.y);
-                scale = Math.max(0.35, Math.min(1.0, 900 / (fighterDist + 350)));
+                let sumX = 0, sumY = 0;
+                for (let f of fighters) {
+                    sumX += f.x + size/2;
+                    sumY += f.y + size/2;
+                }
+                let midX = sumX / fighters.length;
+                let midY = sumY / fighters.length;
+
+                let maxSpread = 0;
+                for (let i = 0; i < fighters.length; i++) {
+                    for (let j = i + 1; j < fighters.length; j++) {
+                        let d = Math.hypot(fighters[i].x - fighters[j].x, fighters[i].y - fighters[j].y);
+                        if (d > maxSpread) maxSpread = d;
+                    }
+                }
+
+                scale = Math.max(0.25, Math.min(1.0, 900 / (maxSpread + 350)));
                 camX = viewportW / 2 - midX * scale;
                 camY = viewportH / 2 - midY * scale;
-            } else if (cameraMode === 'f1') {
-                scale = 0.75;
-                camX = viewportW / 2 - (f1.x + size/2) * scale;
-                camY = viewportH / 2 - (f1.y + size/2) * scale;
-            } else if (cameraMode === 'f2') {
-                scale = 0.75;
-                camX = viewportW / 2 - (f2.x + size/2) * scale;
-                camY = viewportH / 2 - (f2.y + size/2) * scale;
             } else if (cameraMode === 'zoomout') {
                 scale = 0.28;
                 camX = (viewportW - worldWidth * scale) / 2;
@@ -531,8 +611,8 @@
         }
 
         function updateHUD() {
-            document.getElementById('hp1').innerText = `Fighter 1 HP: ${f1.hp}`;
-            document.getElementById('hp2').innerText = `Fighter 2 HP: ${f2.hp}`;
+            let hudText = fighters.map(f => `F${f.id}: ${f.hp}`).join(' | ');
+            document.getElementById('hud-stats').innerText = hudText;
         }
 
         function showWorldText(x, y, text) {
@@ -546,13 +626,13 @@
         }
 
         function checkWin() {
-            if (f1.hp <= 0 || f2.hp <= 0) {
+            let aliveFighters = fighters.filter(f => f.hp > 0);
+            if (aliveFighters.length <= 1 && fighters.length > 1) {
                 gameRunning = false;
-                let winnerName = f1.hp <= 0 ? "Fighter 2" : "Fighter 1";
-                let winnerImageSrc = f1.hp <= 0 ? f2.el.src : f1.el.src;
+                let winner = aliveFighters.length === 1 ? aliveFighters[0] : fighters[0];
 
-                document.getElementById('winner-text').innerText = `${winnerName} Wins!`;
-                document.getElementById('winner-img').src = winnerImageSrc;
+                document.getElementById('winner-text').innerText = `Fighter ${winner.id} Wins!`;
+                document.getElementById('winner-img').src = winner.el.src;
                 document.getElementById('winner-banner').style.display = 'block';
 
                 setTimeout(() => location.reload(), 5000);
