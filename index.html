@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Brawler Arena</title>
+    <title>Image Brawler Platform Arena</title>
     <style>
         body {
             background-color: #0c0514;
@@ -21,15 +21,13 @@
         #setup-screen {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 20px;
             background: #170b28;
-            padding: 25px;
+            padding: 30px;
             border-radius: 10px;
             border: 2px solid #8b5cf6;
             text-align: center;
-            width: 650px;
-            max-height: 85vh;
-            overflow-y: auto;
+            width: 450px;
         }
 
         .fighter-inputs {
@@ -41,78 +39,18 @@
         .input-group {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 8px;
             text-align: left;
-        }
-
-        #attacks-config {
-            max-height: 220px;
-            overflow-y: auto;
-            text-align: left;
-            background: #10061c;
-            padding: 12px;
-            border-radius: 5px;
-            border: 1px solid #4c1d95;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .attack-row {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            background: #1e1b4b;
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #7c3aed;
-        }
-
-        .attack-row input[type="text"] {
-            background: #0c0514;
-            color: white;
-            border: 1px solid #4c1d95;
-            padding: 6px;
-            border-radius: 4px;
-            flex-grow: 2;
-        }
-
-        .attack-row input[type="number"] {
-            background: #0c0514;
-            color: white;
-            border: 1px solid #4c1d95;
-            padding: 6px;
-            border-radius: 4px;
-            width: 60px;
-        }
-
-        .attack-row select {
-            background: #0c0514;
-            color: white;
-            border: 1px solid #4c1d95;
-            padding: 6px;
-            border-radius: 4px;
-            flex-grow: 1;
-        }
-
-        .delete-btn {
-            background-color: #ef4444;
-            padding: 6px 10px;
-            font-size: 12px;
-        }
-
-        .delete-btn:hover {
-            background-color: #dc2626;
         }
 
         button {
-            padding: 10px 20px;
+            padding: 12px 24px;
             background-color: #7c3aed;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 15px;
+            font-size: 16px;
             font-weight: bold;
         }
 
@@ -160,26 +98,40 @@
             position: absolute;
             width: 3000px;
             height: 1800px;
-            border: 2px dashed #4c1d95;
+            background: radial-gradient(circle, #150926 0%, #07020d 100%);
             transform-origin: 0 0;
+        }
+
+        /* Central Platform */
+        .platform {
+            position: absolute;
+            left: 750px;
+            top: 950px;
+            width: 1500px;
+            height: 60px;
+            background: #1e1b4b;
+            border: 4px solid #7c3aed;
+            border-radius: 8px;
         }
 
         .fighter {
             position: absolute;
-            width: 160px;
-            height: 160px;
+            width: 140px;
+            height: 140px;
             object-fit: contain;
-            background: #1e1b4b;
+            background: #170b28;
             border: 4px solid #ffffff;
             box-sizing: border-box;
+            border-radius: 12px;
         }
 
         .projectile {
             position: absolute;
             width: 24px;
             height: 24px;
-            background: #d8b4fe;
+            background: #c084fc;
             border: 2px solid #ffffff;
+            border-radius: 50%;
             pointer-events: none;
         }
 
@@ -199,13 +151,13 @@
             color: #f472b6;
             animation: floatUp 0.8s ease-out forwards;
             pointer-events: none;
-            text-shadow: 1px 1px 2px #000;
+            text-shadow: 2px 2px 4px #000;
             z-index: 20;
         }
 
         @keyframes floatUp {
             0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-45px); opacity: 0; }
+            100% { transform: translateY(-50px); opacity: 0; }
         }
 
         #winner-banner {
@@ -213,7 +165,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 50px;
+            font-size: 55px;
             font-weight: bold;
             color: #4ade80;
             text-shadow: 2px 2px 8px #000;
@@ -227,7 +179,7 @@
 
     <!-- Setup Screen -->
     <div id="setup-screen">
-        <h2>Advanced Brawler Arena Builder</h2>
+        <h2>Platform Bot Arena</h2>
         <div class="fighter-inputs">
             <div class="input-group">
                 <label>Fighter 1 Image</label>
@@ -238,47 +190,7 @@
                 <input type="file" id="img2-input" accept="image/*">
             </div>
         </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <label style="font-size: 14px; font-weight: bold;">Custom Attack Pool Editor:</label>
-            <button onclick="addAttackRow()" style="padding: 5px 12px; font-size: 13px;">+ Add Attack</button>
-        </div>
-        
-        <div id="attacks-config">
-            <!-- Default fully customizable rows -->
-            <div class="attack-row">
-                <input type="text" class="atk-name" value="Jab Strike">
-                <input type="number" class="atk-dmg" value="30">
-                <select class="atk-type">
-                    <option value="melee" selected>Melee</option>
-                    <option value="projectile">Projectile</option>
-                    <option value="lightning">Lightning Strike</option>
-                </select>
-                <button class="delete-btn" onclick="this.parentElement.remove()">X</button>
-            </div>
-            <div class="attack-row">
-                <input type="text" class="atk-name" value="Energy Ball">
-                <input type="number" class="atk-dmg" value="55">
-                <select class="atk-type">
-                    <option value="melee">Melee</option>
-                    <option value="projectile" selected>Projectile</option>
-                    <option value="lightning">Lightning Strike</option>
-                </select>
-                <button class="delete-btn" onclick="this.parentElement.remove()">X</button>
-            </div>
-            <div class="attack-row">
-                <input type="text" class="atk-name" value="Heavenly Zap">
-                <input type="number" class="atk-dmg" value="90">
-                <select class="atk-type">
-                    <option value="melee">Melee</option>
-                    <option value="projectile">Projectile</option>
-                    <option value="lightning" selected>Lightning Strike</option>
-                </select>
-                <button class="delete-btn" onclick="this.parentElement.remove()">X</button>
-            </div>
-        </div>
-
-        <button onclick="startBattle()">Start Epic Fight!</button>
+        <button onclick="startBattle()">Start Bot Brawl!</button>
     </div>
 
     <!-- Game Screen -->
@@ -295,6 +207,7 @@
         </div>
         <div id="viewport">
             <div id="world">
+                <div class="platform"></div>
                 <div id="winner-banner"></div>
                 <img id="fighter1" class="fighter" src="">
                 <img id="fighter2" class="fighter" src="">
@@ -310,34 +223,37 @@
     <script>
         const worldWidth = 3000;
         const worldHeight = 1800;
-        const size = 160;
+        const size = 140;
 
-        let f1 = { x: 400, y: 400, vx: 18, vy: 16, hp: 1000, el: document.getElementById('fighter1') };
-        let f2 = { x: 2400, y: 1300, vx: -18, vy: -16, hp: 1000, el: document.getElementById('fighter2') };
+        // Platform bounds
+        const platX = 750;
+        const platY = 950;
+        const platW = 1500;
+        const platH = 60px;
+
+        let f1 = { x: 900, y: 800, vx: 0, vy: 0, hp: 1000, el: document.getElementById('fighter1') };
+        let f2 = { x: 2000, y: 800, vx: 0, vy: 0, hp: 1000, el: document.getElementById('fighter2') };
+        
         let projectiles = [];
         let gameRunning = false;
         let cameraMode = 'dynamic';
-        let customAttacks = [];
+
+        // Massive variety of attacks
+        const massiveAttackPool = [
+            { name: "Heavy Smash", damage: 40, type: "melee", kb: 18 },
+            { name: "Plasma Blast", damage: 55, type: "projectile", kb: 12 },
+            { name: "Lightning Zap", damage: 75, type: "lightning", kb: 15 },
+            { name: "Meteor Slam", damage: 90, type: "melee", kb: 25 },
+            { name: "Energy Dart", damage: 35, type: "projectile", kb: 10 },
+            { name: "Super Beam", damage: 80, type: "projectile", kb: 20 },
+            { name: "Thunder Storm", damage: 100, type: "lightning", kb: 22 },
+            { name: "Shadow Kick", damage: 45, type: "melee", kb: 16 },
+            { name: "Sonic Wave", damage: 60, type: "projectile", kb: 14 },
+            { name: "Divine Strike", damage: 85, type: "lightning", kb: 20 }
+        ];
 
         function setCameraMode(mode) {
             cameraMode = mode;
-        }
-
-        function addAttackRow() {
-            let container = document.getElementById('attacks-config');
-            let row = document.createElement('div');
-            row.className = 'attack-row';
-            row.innerHTML = `
-                <input type="text" class="atk-name" value="Custom Attack">
-                <input type="number" class="atk-dmg" value="40">
-                <select class="atk-type">
-                    <option value="melee">Melee</option>
-                    <option value="projectile">Projectile</option>
-                    <option value="lightning">Lightning Strike</option>
-                </select>
-                <button class="delete-btn" onclick="this.parentElement.remove()">X</button>
-            `;
-            container.appendChild(row);
         }
 
         function startBattle() {
@@ -345,21 +261,7 @@
             const file2 = document.getElementById('img2-input').files[0];
 
             if (!file1 || !file2) {
-                alert("Please upload both fighter images!");
-                return;
-            }
-
-            customAttacks = [];
-            let rows = document.querySelectorAll('.attack-row');
-            rows.forEach(r => {
-                let name = r.querySelector('.atk-name').value;
-                let damage = Number(r.querySelector('.atk-dmg').value);
-                let type = r.querySelector('.atk-type').value;
-                customAttacks.push({ name, damage, type });
-            });
-
-            if (customAttacks.length === 0) {
-                alert("Please add at least one custom attack!");
+                alert("Please upload both images!");
                 return;
             }
 
@@ -376,35 +278,89 @@
             requestAnimationFrame(updateGame);
         }
 
+        function updateBotAI(fighter, opponent) {
+            // Bot AI logic to track opponent across the platform
+            let targetX = opponent.x;
+            let targetY = opponent.y;
+
+            let dx = targetX - fighter.x;
+            
+            // Move toward opponent horizontally
+            if (Math.abs(dx) > 30) {
+                fighter.vx += Math.sign(dx) * 0.8;
+            }
+            fighter.vx *= 0.85; // friction
+
+            // Cap horizontal speed
+            fighter.vx = Math.max(-12, Math.min(12, fighter.vx));
+            fighter.x += fighter.vx;
+
+            // Gravity & Platform collision
+            fighter.vy += 0.8; // gravity
+            fighter.y += fighter.vy;
+
+            // Check landing on platform
+            let onPlatform = (
+                fighter.x + size > 750 &&
+                fighter.x < 750 + 1500 &&
+                fighter.y + size >= 950 &&
+                fighter.y + size <= 970 &&
+                fighter.vy >= 0
+            );
+
+            if (onPlatform) {
+                fighter.y = 950 - size;
+                fighter.vy = 0;
+                // Random tactical jump
+                if (Math.random() < 0.015) {
+                    fighter.vy = -16;
+                }
+            }
+
+            // Fall off penalty check (below platform y=1050)
+            if (fighter.y > 1550) {
+                fighter.hp -= 30;
+                if (fighter.hp < 0) fighter.hp = 0;
+                showWorldText(fighter.x, fighter.y, "Fall! (-30)");
+                updateHUD();
+                checkWin();
+
+                // Respawn back onto platform safely
+                fighter.y = 800;
+                fighter.vy = -10;
+                fighter.x = 1200 + (Math.random() * 600 - 300);
+            }
+
+            // World boundary constraints
+            if (fighter.x < 50) { fighter.x = 50; fighter.vx *= -1; }
+            if (fighter.x > worldWidth - size - 50) { fighter.x = worldWidth - size - 50; fighter.vx *= -1; }
+        }
+
         function updateGame() {
             if (!gameRunning) return;
 
-            f1.x += f1.vx;
-            f1.y += f1.vy;
-            f2.x += f2.vx;
-            f2.y += f2.vy;
+            // Update Bot AIs
+            updateBotAI(f1, f2);
+            updateBotAI(f2, f1);
 
-            if (f1.x <= 0 || f1.x >= worldWidth - size) f1.vx *= -1;
-            if (f1.y <= 0 || f1.y >= worldHeight - size) f1.vy *= -1;
-            if (f2.x <= 0 || f2.x >= worldWidth - size) f2.vx *= -1;
-            if (f2.y <= 0 || f2.y >= worldHeight - size) f2.vy *= -1;
-
+            // Fighter-to-Fighter Collision & Attacks
             let dx = (f1.x + size/2) - (f2.x + size/2);
             let dy = (f1.y + size/2) - (f2.y + size/2);
             let distance = Math.hypot(dx, dy);
 
             if (distance < size) {
-                let tempVx = f1.vx; let tempVy = f1.vy;
-                f1.vx = f2.vx; f1.vy = f2.vy;
-                f2.vx = tempVx; f2.vy = tempVy;
-
-                f1.x += f1.vx; f1.y += f1.vy;
-                f2.x += f2.vx; f2.y += f2.vy;
+                // Apply Knockback bounce away from each other
+                let angle = Math.atan2(dy, dx);
+                f1.vx = Math.cos(angle) * 15;
+                f1.vy = -8;
+                f2.vx = -Math.cos(angle) * 15;
+                f2.vy = -8;
 
                 let attacker = Math.random() > 0.5 ? 1 : 2;
-                triggerAttack(attacker);
+                triggerRandomAttack(attacker);
             }
 
+            // Update Projectiles
             for (let i = projectiles.length - 1; i >= 0; i--) {
                 let p = projectiles[i];
                 p.x += p.vx;
@@ -417,6 +373,7 @@
 
                 if (tDist < size/2) {
                     target.hp -= p.damage;
+                    target.vy -= p.kb * 0.4; // knockback from projectile
                     if (target.hp < 0) target.hp = 0;
                     showWorldText(target.x, target.y, `Hit! (-${p.damage})`);
                     updateHUD();
@@ -429,6 +386,7 @@
                 }
             }
 
+            // Render Positions
             f1.el.style.left = f1.x + 'px';
             f1.el.style.top = f1.y + 'px';
             f2.el.style.left = f2.x + 'px';
@@ -439,9 +397,9 @@
             requestAnimationFrame(updateGame);
         }
 
-        function triggerAttack(attackerNum) {
+        function triggerRandomAttack(attackerNum) {
             if (!gameRunning) return;
-            let atk = customAttacks[Math.floor(Math.random() * customAttacks.length)];
+            let atk = massiveAttackPool[Math.floor(Math.random() * massiveAttackPool.length)];
             let attacker = attackerNum === 1 ? f1 : f2;
             let target = attackerNum === 1 ? f2 : f1;
 
@@ -454,15 +412,17 @@
                 projectiles.push({
                     x: attacker.x + size/2,
                     y: attacker.y + size/2,
-                    vx: Math.cos(angle) * 22,
-                    vy: Math.sin(angle) * 22,
+                    vx: Math.cos(angle) * 18,
+                    vy: Math.sin(angle) * 18,
                     damage: atk.damage,
+                    kb: atk.kb,
                     owner: attackerNum,
                     el: pEl
                 });
                 showWorldText(attacker.x, attacker.y, atk.name);
             } else if (atk.type === "lightning") {
                 target.hp -= atk.damage;
+                target.vy -= atk.kb * 0.5;
                 if (target.hp < 0) target.hp = 0;
 
                 let lEl = document.createElement('div');
@@ -488,6 +448,7 @@
                 checkWin();
             } else {
                 target.hp -= atk.damage;
+                target.vy -= atk.kb * 0.5;
                 if (target.hp < 0) target.hp = 0;
                 showWorldText(target.x, target.y, `${atk.name} (-${atk.damage})`);
                 updateHUD();
@@ -504,15 +465,15 @@
                 let midX = (f1.x + f2.x) / 2 + size/2;
                 let midY = (f1.y + f2.y) / 2 + size/2;
                 let fighterDist = Math.hypot(f1.x - f2.x, f1.y - f2.y);
-                scale = Math.max(0.3, Math.min(1.0, 900 / (fighterDist + 400)));
+                scale = Math.max(0.35, Math.min(1.0, 900 / (fighterDist + 350)));
                 camX = viewportW / 2 - midX * scale;
                 camY = viewportH / 2 - midY * scale;
             } else if (cameraMode === 'f1') {
-                scale = 0.7;
+                scale = 0.75;
                 camX = viewportW / 2 - (f1.x + size/2) * scale;
                 camY = viewportH / 2 - (f1.y + size/2) * scale;
             } else if (cameraMode === 'f2') {
-                scale = 0.7;
+                scale = 0.75;
                 camX = viewportW / 2 - (f2.x + size/2) * scale;
                 camY = viewportH / 2 - (f2.y + size/2) * scale;
             } else if (cameraMode === 'zoomout') {
@@ -542,7 +503,7 @@
         function checkWin() {
             if (f1.hp <= 0 || f2.hp <= 0) {
                 gameRunning = false;
-                let winner = f1.hp <= 0 ? "Opponent 2" : "Opponent 1";
+                let winner = f1.hp <= 0 ? "Fighter 2" : "Fighter 1";
                 let banner = document.getElementById('winner-banner');
                 banner.innerText = `${winner} Wins!`;
                 banner.style.display = 'block';
