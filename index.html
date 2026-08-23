@@ -27,7 +27,9 @@
             border-radius: 10px;
             border: 2px solid #8b5cf6;
             text-align: center;
-            max-width: 500px;
+            width: 550px;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .fighter-inputs {
@@ -40,23 +42,26 @@
             display: flex;
             flex-direction: column;
             gap: 5px;
+            text-align: left;
         }
 
         #attacks-config {
-            max-height: 120px;
+            max-height: 180px;
             overflow-y: auto;
             text-align: left;
             background: #10061c;
             padding: 10px;
             border-radius: 5px;
             border: 1px solid #4c1d95;
-            font-size: 13px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
-        .attack-item {
+        .attack-row {
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
+            gap: 5px;
+            align-items: center;
         }
 
         button {
@@ -84,25 +89,25 @@
         #hud {
             display: flex;
             justify-content: space-between;
-            width: 800px;
+            width: 900px;
             font-size: 18px;
             font-weight: bold;
         }
 
         #camera-controls {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
 
         #camera-controls button {
-            padding: 5px 12px;
+            padding: 5px 10px;
             font-size: 12px;
             background: #4c1d95;
         }
 
         #viewport {
-            width: 800px;
-            height: 480px;
+            width: 900px;
+            height: 520px;
             border: 4px solid #7c3aed;
             position: relative;
             background: #07020d;
@@ -112,45 +117,54 @@
 
         #world {
             position: absolute;
-            width: 2500px;
-            height: 1500px;
+            width: 3000px;
+            height: 1800px;
             border: 2px dashed #4c1d95;
             transform-origin: 0 0;
         }
 
         .fighter {
             position: absolute;
-            width: 90px;
-            height: 90px;
+            width: 160px;
+            height: 160px;
             object-fit: contain;
             background: #1e1b4b;
-            border: 3px solid #ffffff;
+            border: 4px solid #ffffff;
             box-sizing: border-box;
         }
 
         .projectile {
             position: absolute;
-            width: 16px;
-            height: 16px;
+            width: 24px;
+            height: 24px;
             background: #d8b4fe;
             border: 2px solid #ffffff;
             pointer-events: none;
         }
 
+        .lightning {
+            position: absolute;
+            height: 6px;
+            background: #ffffff;
+            pointer-events: none;
+            z-index: 15;
+            box-shadow: 0 0 8px #c084fc;
+        }
+
         .floating-text {
             position: absolute;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 20px;
             color: #f472b6;
-            animation: floatUp 0.7s ease-out forwards;
+            animation: floatUp 0.8s ease-out forwards;
             pointer-events: none;
             text-shadow: 1px 1px 2px #000;
-            z-index: 10;
+            z-index: 20;
         }
 
         @keyframes floatUp {
             0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-35px); opacity: 0; }
+            100% { transform: translateY(-45px); opacity: 0; }
         }
 
         #winner-banner {
@@ -158,12 +172,12 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 45px;
+            font-size: 50px;
             font-weight: bold;
             color: #4ade80;
             text-shadow: 2px 2px 8px #000;
             display: none;
-            z-index: 20;
+            z-index: 30;
             text-align: center;
         }
     </style>
@@ -172,7 +186,7 @@
 
     <!-- Setup Screen -->
     <div id="setup-screen">
-        <h2>Configure Image Brawler</h2>
+        <h2>Custom Brawler Arena Builder</h2>
         <div class="fighter-inputs">
             <div class="input-group">
                 <label>Fighter 1 Image</label>
@@ -184,13 +198,55 @@
             </div>
         </div>
 
-        <label style="font-size: 14px; font-weight: bold;">Customize Attacks:</label>
+        <label style="font-size: 14px; font-weight: bold; text-align: left;">Configure Variety of Attacks:</label>
         <div id="attacks-config">
-            <div class="attack-item"><input type="text" id="atk1-name" value="Heavy Punch 👊" style="width:55%;"> <input type="number" id="atk1-dmg" value="45" style="width:25%;"></div>
-            <div class="attack-item"><input type="text" id="atk2-name" value="Plasma Laser ⚡" style="width:55%;"> <input type="number" id="atk2-dmg" value="65" style="width:25%;"></div>
-            <div class="attack-item"><input type="text" id="atk3-name" value="Roundhouse Kick 💥" style="width:55%;"> <input type="number" id="atk3-dmg" value="50" style="width:25%;"></div>
-            <div class="attack-item"><input type="text" id="atk4-name" value="Energy Dart 🗡️" style="width:55%;"> <input type="number" id="atk4-dmg" value="55" style="width:25%;"></div>
+            <div class="attack-row">
+                <input type="text" class="atk-name" value="Heavy Smash" style="width:50%;">
+                <input type="number" class="atk-dmg" value="45" style="width:20%;">
+                <select class="atk-type" style="width:25%;">
+                    <option value="melee">Melee</option>
+                    <option value="projectile">Projectile</option>
+                    <option value="lightning">Lightning</option>
+                </select>
+            </div>
+            <div class="attack-row">
+                <input type="text" class="atk-name" value="Plasma Cannon" style="width:50%;">
+                <input type="number" class="atk-dmg" value="65" style="width:20%;">
+                <select class="atk-type" style="width:25%;">
+                    <option value="melee">Melee</option>
+                    <option value="projectile" selected>Projectile</option>
+                    <option value="lightning">Lightning</option>
+                </select>
+            </div>
+            <div class="attack-row">
+                <input type="text" class="atk-name" value="Thunder Bolt" style="width:50%;">
+                <input type="number" class="atk-dmg" value="85" style="width:20%;">
+                <select class="atk-type" style="width:25%;">
+                    <option value="melee">Melee</option>
+                    <option value="projectile">Projectile</option>
+                    <option value="lightning" selected>Lightning</option>
+                </select>
+            </div>
+            <div class="attack-row">
+                <input type="text" class="atk-name" value="Shadow Rush" style="width:50%;">
+                <input type="number" class="atk-dmg" value="50" style="width:20%;">
+                <select class="atk-type" style="width:25%;">
+                    <option value="melee" selected>Melee</option>
+                    <option value="projectile">Projectile</option>
+                    <option value="lightning">Lightning</option>
+                </select>
+            </div>
+            <div class="attack-row">
+                <input type="text" class="atk-name" value="Mega Laser" style="width:50%;">
+                <input type="number" class="atk-dmg" value="75" style="width:20%;">
+                <select class="atk-type" style="width:25%;">
+                    <option value="melee">Melee</option>
+                    <option value="projectile" selected>Projectile</option>
+                    <option value="lightning">Lightning</option>
+                </select>
+            </div>
         </div>
+        <button onclick="addAttackRow()">+ Add Another Attack</button>
         <button onclick="startBattle()">Start Epic Fight!</button>
     </div>
 
@@ -221,20 +277,35 @@
     </audio>
 
     <script>
-        const worldWidth = 2500;
-        const worldHeight = 1500;
-        const size = 90;
+        const worldWidth = 3000;
+        const worldHeight = 1800;
+        const size = 160; // Much bigger fighters
 
-        let f1 = { x: 300, y: 300, vx: 10, vy: 9, hp: 1000, el: document.getElementById('fighter1') };
-        let f2 = { x: 2100, y: 1200, vx: -10, vy: -9, hp: 1000, el: document.getElementById('fighter2') };
+        let f1 = { x: 400, y: 400, vx: 18, vy: 16, hp: 1000, el: document.getElementById('fighter1') };
+        let f2 = { x: 2400, y: 1300, vx: -18, vy: -16, hp: 1000, el: document.getElementById('fighter2') };
         let projectiles = [];
         let gameRunning = false;
-        let cameraMode = 'dynamic'; // dynamic, f1, f2, zoomout
-
+        let cameraMode = 'dynamic';
         let customAttacks = [];
 
         function setCameraMode(mode) {
             cameraMode = mode;
+        }
+
+        function addAttackRow() {
+            let container = document.getElementById('attacks-config');
+            let row = document.createElement('div');
+            row.className = 'attack-row';
+            row.innerHTML = `
+                <input type="text" class="atk-name" value="Custom Strike" style="width:50%;">
+                <input type="number" class="atk-dmg" value="50" style="width:20%;">
+                <select class="atk-type" style="width:25%;">
+                    <option value="melee">Melee</option>
+                    <option value="projectile">Projectile</option>
+                    <option value="lightning">Lightning</option>
+                </select>
+            `;
+            container.appendChild(row);
         }
 
         function startBattle() {
@@ -246,13 +317,20 @@
                 return;
             }
 
-            // Pull custom attacks from inputs
-            customAttacks = [
-                { name: document.getElementById('atk1-name').value, damage: Number(document.getElementById('atk1-dmg').value), type: "melee" },
-                { name: document.getElementById('atk2-name').value, damage: Number(document.getElementById('atk2-dmg').value), type: "projectile" },
-                { name: document.getElementById('atk3-name').value, damage: Number(document.getElementById('atk3-dmg').value), type: "melee" },
-                { name: document.getElementById('atk4-name').value, damage: Number(document.getElementById('atk4-dmg').value), type: "projectile" }
-            ];
+            // Collect all user configured attacks
+            customAttacks = [];
+            let rows = document.querySelectorAll('.attack-row');
+            rows.forEach(r => {
+                let name = r.querySelector('.atk-name').value;
+                let damage = Number(r.querySelector('.atk-dmg').value);
+                let type = r.querySelector('.atk-type').value;
+                customAttacks.push({ name, damage, type });
+            });
+
+            if (customAttacks.length === 0) {
+                alert("Please add at least one attack!");
+                return;
+            }
 
             f1.el.src = URL.createObjectURL(file1);
             f2.el.src = URL.createObjectURL(file2);
@@ -270,30 +348,30 @@
         function updateGame() {
             if (!gameRunning) return;
 
-            // Ultra-fast movement
+            // Blazing fast speeds for 160px fighters
             f1.x += f1.vx;
             f1.y += f1.vy;
             f2.x += f2.vx;
             f2.y += f2.vy;
 
-            // Massive World Wall Bounces
+            // Wall bounces
             if (f1.x <= 0 || f1.x >= worldWidth - size) f1.vx *= -1;
             if (f1.y <= 0 || f1.y >= worldHeight - size) f1.vy *= -1;
             if (f2.x <= 0 || f2.x >= worldWidth - size) f2.vx *= -1;
             if (f2.y <= 0 || f2.y >= worldHeight - size) f2.vy *= -1;
 
-            // Aggressive Collisions
+            // Collision detection matching larger fighter dimensions
             let dx = (f1.x + size/2) - (f2.x + size/2);
             let dy = (f1.y + size/2) - (f2.y + size/2);
             let distance = Math.hypot(dx, dy);
 
-            if (distance < size + 15) {
+            if (distance < size) {
                 let tempVx = f1.vx; let tempVy = f1.vy;
                 f1.vx = f2.vx; f1.vy = f2.vy;
                 f2.vx = tempVx; f2.vy = tempVy;
 
-                f1.x += f1.vx * 2; f1.y += f1.vy * 2;
-                f2.x += f2.vx * 2; f2.y += f2.vy * 2;
+                f1.x += f1.vx; f1.y += f1.vy;
+                f2.x += f2.vx; f2.y += f2.vy;
 
                 let attacker = Math.random() > 0.5 ? 1 : 2;
                 triggerAttack(attacker);
@@ -350,13 +428,39 @@
                 projectiles.push({
                     x: attacker.x + size/2,
                     y: attacker.y + size/2,
-                    vx: Math.cos(angle) * 14,
-                    vy: Math.sin(angle) * 14,
+                    vx: Math.cos(angle) * 22,
+                    vy: Math.sin(angle) * 22,
                     damage: atk.damage,
                     owner: attackerNum,
                     el: pEl
                 });
                 showWorldText(attacker.x, attacker.y, atk.name);
+            } else if (atk.type === "lightning") {
+                // Instant lightning strike across the screen
+                target.hp -= atk.damage;
+                if (target.hp < 0) target.hp = 0;
+
+                let lEl = document.createElement('div');
+                lEl.className = 'lightning';
+                let startX = attacker.x + size/2;
+                let startY = attacker.y + size/2;
+                let endX = target.x + size/2;
+                let endY = target.y + size/2;
+                let dist = Math.hypot(endX - startX, endY - startY);
+                let angle = Math.atan2(endY - startY, endX - startX) * 180 / Math.PI;
+
+                lEl.style.width = dist + 'px';
+                lEl.style.left = startX + 'px';
+                lEl.style.top = startY + 'px';
+                lEl.style.transformOrigin = '0 0';
+                lEl.style.transform = `rotate(${angle}deg)`;
+
+                document.getElementById('world').appendChild(lEl);
+                setTimeout(() => lEl.remove(), 250);
+
+                showWorldText(target.x, target.y, `${atk.name} (-${atk.damage})`);
+                updateHUD();
+                checkWin();
             } else {
                 target.hp -= atk.damage;
                 if (target.hp < 0) target.hp = 0;
@@ -367,27 +471,27 @@
         }
 
         function updateCamera() {
-            let viewportW = 800;
-            let viewportH = 480;
+            let viewportW = 900;
+            let viewportH = 520;
             let camX = 0, camY = 0, scale = 1.0;
 
             if (cameraMode === 'dynamic') {
                 let midX = (f1.x + f2.x) / 2 + size/2;
                 let midY = (f1.y + f2.y) / 2 + size/2;
                 let fighterDist = Math.hypot(f1.x - f2.x, f1.y - f2.y);
-                scale = Math.max(0.35, Math.min(1.0, 800 / (fighterDist + 300)));
+                scale = Math.max(0.3, Math.min(1.0, 900 / (fighterDist + 400)));
                 camX = viewportW / 2 - midX * scale;
                 camY = viewportH / 2 - midY * scale;
             } else if (cameraMode === 'f1') {
-                scale = 0.8;
+                scale = 0.7;
                 camX = viewportW / 2 - (f1.x + size/2) * scale;
                 camY = viewportH / 2 - (f1.y + size/2) * scale;
             } else if (cameraMode === 'f2') {
-                scale = 0.8;
+                scale = 0.7;
                 camX = viewportW / 2 - (f2.x + size/2) * scale;
                 camY = viewportH / 2 - (f2.y + size/2) * scale;
             } else if (cameraMode === 'zoomout') {
-                scale = 0.32; // Shows the entire giant world
+                scale = 0.28;
                 camX = (viewportW - worldWidth * scale) / 2;
                 camY = (viewportH - worldHeight * scale) / 2;
             }
@@ -407,7 +511,7 @@
             el.style.left = x + 'px';
             el.style.top = y + 'px';
             document.getElementById('world').appendChild(el);
-            setTimeout(() => el.remove(), 700);
+            setTimeout(() => el.remove(), 800);
         }
 
         function checkWin() {
