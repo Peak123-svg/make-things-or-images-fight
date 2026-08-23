@@ -26,23 +26,41 @@
             padding: 30px;
             border-radius: 4px;
             text-align: center;
-            width: 450px;
+            width: 480px;
         }
 
         .fighter-inputs {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            max-height: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 320px;
             overflow-y: auto;
             padding-right: 5px;
+        }
+
+        .fighter-input-row {
+            display: flex;
+            gap: 10px;
+            background: #2a2a2a;
+            padding: 10px;
+            border-radius: 4px;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .input-group {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 3px;
             text-align: left;
+        }
+
+        .input-group input[type="text"] {
+            padding: 5px;
+            background: #1a1a1a;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 3px;
         }
 
         button {
@@ -113,6 +131,14 @@
             border-radius: 4px;
         }
 
+        .fighter-wrapper {
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            transition: opacity 0.5s ease-out;
+            opacity: 1;
+        }
+
         .fighter {
             position: absolute;
             width: 140px;
@@ -122,6 +148,36 @@
             border: 2px solid #ffffff;
             box-sizing: border-box;
             border-radius: 4px;
+        }
+
+        .username-tag {
+            position: absolute;
+            top: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #ffffff;
+            padding: 2px 6px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 3px;
+            white-space: nowrap;
+            border: 1px solid #555;
+            z-index: 10;
+        }
+
+        .weapon-badge {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: #333;
+            color: #ffcc00;
+            padding: 2px 5px;
+            font-size: 10px;
+            font-weight: bold;
+            border-radius: 3px;
+            border: 1px solid #666;
+            z-index: 10;
         }
 
         .projectile {
@@ -194,13 +250,25 @@
             <input type="number" id="fighter-count" min="2" value="2" onchange="updateFighterInputs()" style="padding: 6px; background: #333; color: white; border: 1px solid #555;">
         </div>
         <div class="fighter-inputs" id="fighter-inputs-container">
-            <div class="input-group">
-                <label>Fighter 1</label>
-                <input type="file" id="img0-input" accept="image/*">
+            <div class="fighter-input-row">
+                <div class="input-group">
+                    <label>Name 1</label>
+                    <input type="text" id="name0" value="Fighter 1">
+                </div>
+                <div class="input-group">
+                    <label>Image 1</label>
+                    <input type="file" id="img0-input" accept="image/*">
+                </div>
             </div>
-            <div class="input-group">
-                <label>Fighter 2</label>
-                <input type="file" id="img1-input" accept="image/*">
+            <div class="fighter-input-row">
+                <div class="input-group">
+                    <label>Name 2</label>
+                    <input type="text" id="name1" value="Fighter 2">
+                </div>
+                <div class="input-group">
+                    <label>Image 2</label>
+                    <input type="file" id="img1-input" accept="image/*">
+                </div>
             </div>
         </div>
         <button onclick="startBattle()">Start Fight</button>
@@ -241,6 +309,16 @@
         let cameraMode = 'dynamic';
         let currentPlatforms = [];
 
+        const weaponsPool = [
+            { name: "Sword", type: "melee", damageMultiplier: 1.2, range: 40 },
+            { name: "Gun", type: "projectile", damageMultiplier: 1.0, speed: 28 },
+            { name: "Laser Rifle", type: "projectile", damageMultiplier: 1.4, speed: 35 },
+            { name: "Magic Wand", type: "lightning", damageMultiplier: 1.5, range: 300 },
+            { name: "War Hammer", type: "melee", damageMultiplier: 1.7, range: 50 },
+            { name: "Crossbow", type: "projectile", damageMultiplier: 1.1, speed: 24 },
+            { name: "Dagger", type: "melee", damageMultiplier: 0.9, range: 30 }
+        ];
+
         const mapPool = [
             [ { x: 750, y: 950, w: 1500, h: 60 } ],
             [
@@ -267,21 +345,18 @@
         ];
 
         const massiveAttackPool = [
-            { name: "Heavy Punch", damage: 90, type: "melee", kb: 35 },
-            { name: "Fireball", damage: 110, type: "projectile", kb: 28 },
-            { name: "Thunder Strike", damage: 140, type: "lightning", kb: 32 },
-            { name: "Meteor Slam", damage: 160, type: "melee", kb: 50 },
-            { name: "Energy Blade", damage: 95, type: "projectile", kb: 25 },
-            { name: "Hyper Beam", damage: 150, type: "projectile", kb: 40 },
-            { name: "Mega Quake", damage: 180, type: "lightning", kb: 45 },
-            { name: "Shadow Kick", damage: 100, type: "melee", kb: 38 },
-            { name: "Sonic Blast", damage: 120, type: "projectile", kb: 30 },
+            { name: "Heavy Strike", damage: 90, type: "melee", kb: 35 },
+            { name: "Blast", damage: 110, type: "projectile", kb: 28 },
+            { name: "Zap", damage: 140, type: "lightning", kb: 32 },
+            { name: "Smash", damage: 160, type: "melee", kb: 50 },
+            { name: "Slash", damage: 95, type: "projectile", kb: 25 },
+            { name: "Beam", damage: 150, type: "projectile", kb: 40 },
+            { name: "Quake", damage: 180, type: "lightning", kb: 45 },
+            { name: "Kick", damage: 100, type: "melee", kb: 38 },
+            { name: "Sonic Wave", damage: 120, type: "projectile", kb: 30 },
             { name: "God Smash", damage: 200, type: "lightning", kb: 55 },
             { name: "Plasma Ray", damage: 130, type: "projectile", kb: 33 },
-            { name: "Earth Shatter", damage: 170, type: "melee", kb: 48 },
-            { name: "Ice Spike", damage: 105, type: "projectile", kb: 29 },
-            { name: "Vortex Kick", damage: 125, type: "melee", kb: 42 },
-            { name: "Solar Flare", damage: 190, type: "lightning", kb: 50 }
+            { name: "Grounder", damage: 170, type: "melee", kb: 48 }
         ];
 
         function updateFighterInputs() {
@@ -291,9 +366,15 @@
             container.innerHTML = '';
             for (let i = 0; i < count; i++) {
                 container.innerHTML += `
-                    <div class="input-group">
-                        <label>Fighter ${i + 1}</label>
-                        <input type="file" id="img${i}-input" accept="image/*">
+                    <div class="fighter-input-row">
+                        <div class="input-group">
+                            <label>Name ${i + 1}</label>
+                            <input type="text" id="name${i}" value="Fighter ${i + 1}">
+                        </div>
+                        <div class="input-group">
+                            <label>Image ${i + 1}</label>
+                            <input type="file" id="img${i}-input" accept="image/*">
+                        </div>
                     </div>
                 `;
             }
@@ -331,28 +412,48 @@
 
             for (let i = 0; i < count; i++) {
                 let fileInput = document.getElementById(`img${i}-input`);
+                let nameInput = document.getElementById(`name${i}`);
                 if (!fileInput || !fileInput.files[0]) {
                     alert(`Please upload images for all ${count} fighters!`);
                     return;
                 }
 
+                let fighterName = nameInput && nameInput.value.trim() !== "" ? nameInput.value.trim() : `Fighter ${i + 1}`;
+                let assignedWeapon = weaponsPool[Math.floor(Math.random() * weaponsPool.length)];
+
+                let wrapper = document.createElement('div');
+                wrapper.className = 'fighter-wrapper';
+
                 let imgEl = document.createElement('img');
                 imgEl.className = 'fighter';
                 imgEl.src = URL.createObjectURL(fileInput.files[0]);
-                fightersContainer.appendChild(imgEl);
 
-                // Spread them out across the stage width
+                let userTag = document.createElement('div');
+                userTag.className = 'username-tag';
+                userTag.innerText = fighterName;
+
+                let weaponBadge = document.createElement('div');
+                weaponBadge.className = 'weapon-badge';
+                weaponBadge.innerText = assignedWeapon.name;
+
+                wrapper.appendChild(userTag);
+                wrapper.appendChild(imgEl);
+                wrapper.appendChild(weaponBadge);
+                fightersContainer.appendChild(wrapper);
+
                 let spawnX = 500 + (i * (1800 / count));
 
                 fighters.push({
                     id: i + 1,
+                    name: fighterName,
                     x: spawnX,
                     y: 700,
                     vx: 0,
                     vy: 0,
                     hp: 1000,
                     cooldown: 0,
-                    el: imgEl
+                    weapon: assignedWeapon,
+                    wrapperEl: wrapper
                 });
             }
 
@@ -370,11 +471,15 @@
         }
 
         function updateBotAI(fighter, targets) {
+            if (fighter.hp <= 0) return;
             if (fighter.cooldown > 0) fighter.cooldown--;
 
-            let closest = targets[0];
+            let aliveTargets = targets.filter(t => t.hp > 0);
+            if (aliveTargets.length === 0) return;
+
+            let closest = aliveTargets[0];
             let minDist = Infinity;
-            for (let t of targets) {
+            for (let t of aliveTargets) {
                 let d = Math.hypot(t.x - fighter.x, t.y - fighter.y);
                 if (d < minDist) {
                     minDist = d;
@@ -420,14 +525,19 @@
 
             if (fighter.y > 1650) {
                 fighter.hp -= 30;
-                if (fighter.hp < 0) fighter.hp = 0;
-                showWorldText(fighter.x, fighter.y, "Fall! (-30)");
+                if (fighter.hp <= 0) {
+                    fighter.hp = 0;
+                    fighter.wrapperEl.style.opacity = '0';
+                }
+                showWorldText(fighter.x, fighter.y, `${fighter.name} Fell! (-30)`);
                 updateHUD();
                 checkWin();
 
-                fighter.y = 600;
-                fighter.vy = -10;
-                fighter.x = 1000 + (Math.random() * 800 - 400);
+                if (fighter.hp > 0) {
+                    fighter.y = 600;
+                    fighter.vy = -10;
+                    fighter.x = 1000 + (Math.random() * 800 - 400);
+                }
             }
 
             if (fighter.x < 50) { fighter.x = 50; fighter.vx *= -1; }
@@ -438,14 +548,19 @@
             if (!gameRunning) return;
 
             for (let i = 0; i < fighters.length; i++) {
-                let otherTargets = fighters.filter((_, idx) => idx !== i);
-                updateBotAI(fighters[i], otherTargets);
+                if (fighters[i].hp <= 0) continue;
+                let otherTargets = fighters.filter((_, idx) => idx !== i && fighters[idx].hp > 0);
+                if (otherTargets.length > 0) {
+                    updateBotAI(fighters[i], otherTargets);
+                }
             }
 
             for (let i = 0; i < fighters.length; i++) {
                 for (let j = i + 1; j < fighters.length; j++) {
                     let fA = fighters[i];
                     let fB = fighters[j];
+                    if (fA.hp <= 0 || fB.hp <= 0) continue;
+
                     let stackDx = fB.x - fA.x;
                     let stackDy = fB.y - fA.y;
                     let stackDist = Math.hypot(stackDx, stackDy);
@@ -466,9 +581,9 @@
                         if (fA.cooldown === 0 && fB.cooldown === 0) {
                             let attacker = Math.random() > 0.5 ? fA : fB;
                             let target = attacker === fA ? fB : fA;
-                            triggerRandomAttack(attacker, target);
-                            fA.cooldown = 70;
-                            fB.cooldown = 70;
+                            executeAttack(attacker, target);
+                            fA.cooldown = 65;
+                            fB.cooldown = 65;
                         }
                     }
                 }
@@ -483,7 +598,7 @@
 
                 let hitTarget = null;
                 for (let f of fighters) {
-                    if (f.id !== p.ownerId) {
+                    if (f.id !== p.ownerId && f.hp > 0) {
                         let tDist = Math.hypot(p.x - (f.x + size/2), p.y - (f.y + size/2));
                         if (tDist < size/2) {
                             hitTarget = f;
@@ -496,8 +611,11 @@
                     hitTarget.hp -= p.damage;
                     hitTarget.vy -= p.kb * 0.6;
                     hitTarget.vx += (p.vx > 0 ? 25 : -25);
-                    if (hitTarget.hp < 0) hitTarget.hp = 0;
-                    showWorldText(hitTarget.x, hitTarget.y, `Hit! (-${p.damage})`);
+                    if (hitTarget.hp <= 0) {
+                        hitTarget.hp = 0;
+                        hitTarget.wrapperEl.style.opacity = '0';
+                    }
+                    showWorldText(hitTarget.x, hitTarget.y, `${hitTarget.name} hit (-${Math.round(p.damage)})`);
                     updateHUD();
                     p.el.remove();
                     projectiles.splice(i, 1);
@@ -509,19 +627,21 @@
             }
 
             for (let f of fighters) {
-                f.el.style.left = f.x + 'px';
-                f.el.style.top = f.y + 'px';
+                f.wrapperEl.style.left = f.x + 'px';
+                f.wrapperEl.style.top = f.y + 'px';
             }
 
             updateCamera();
             requestAnimationFrame(updateGame);
         }
 
-        function triggerRandomAttack(attacker, target) {
-            if (!gameRunning) return;
-            let atk = massiveAttackPool[Math.floor(Math.random() * massiveAttackPool.length)];
+        function executeAttack(attacker, target) {
+            if (!gameRunning || target.hp <= 0) return;
+            let baseAttack = massiveAttackPool[Math.floor(Math.random() * massiveAttackPool.length)];
+            let finalDamage = Math.round(baseAttack.damage * attacker.weapon.damageMultiplier);
 
-            if (atk.type === "projectile") {
+            if (attacker.weapon.type === "projectile" || baseAttack.type === "projectile") {
+                let speed = attacker.weapon.speed || 22;
                 let angle = Math.atan2((target.y + size/2) - (attacker.y + size/2), (target.x + size/2) - (attacker.x + size/2));
                 let pEl = document.createElement('div');
                 pEl.className = 'projectile';
@@ -530,19 +650,22 @@
                 projectiles.push({
                     x: attacker.x + size/2,
                     y: attacker.y + size/2,
-                    vx: Math.cos(angle) * 22,
-                    vy: Math.sin(angle) * 22,
-                    damage: atk.damage,
-                    kb: atk.kb,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    damage: finalDamage,
+                    kb: baseAttack.kb,
                     ownerId: attacker.id,
                     el: pEl
                 });
-                showWorldText(attacker.x, attacker.y, atk.name);
-            } else if (atk.type === "lightning") {
-                target.hp -= atk.damage;
-                target.vy -= atk.kb * 0.7;
+                showWorldText(attacker.x, attacker.y, `${attacker.name}: ${attacker.weapon.name} ${baseAttack.name}`);
+            } else if (attacker.weapon.type === "lightning" || baseAttack.type === "lightning") {
+                target.hp -= finalDamage;
+                target.vy -= baseAttack.kb * 0.7;
                 target.vx += (attacker.x < target.x ? 25 : -25);
-                if (target.hp < 0) target.hp = 0;
+                if (target.hp <= 0) {
+                    target.hp = 0;
+                    target.wrapperEl.style.opacity = '0';
+                }
 
                 let lEl = document.createElement('div');
                 lEl.className = 'lightning';
@@ -562,15 +685,18 @@
                 document.getElementById('world').appendChild(lEl);
                 setTimeout(() => lEl.remove(), 250);
 
-                showWorldText(target.x, target.y, `${atk.name} (-${atk.damage})`);
+                showWorldText(target.x, target.y, `${target.name} zapped! (-${finalDamage})`);
                 updateHUD();
                 checkWin();
             } else {
-                target.hp -= atk.damage;
-                target.vy -= atk.kb * 0.7;
+                target.hp -= finalDamage;
+                target.vy -= baseAttack.kb * 0.7;
                 target.vx += (attacker.x < target.x ? 30 : -30);
-                if (target.hp < 0) target.hp = 0;
-                showWorldText(target.x, target.y, `${atk.name} (-${atk.damage})`);
+                if (target.hp <= 0) {
+                    target.hp = 0;
+                    target.wrapperEl.style.opacity = '0';
+                }
+                showWorldText(target.x, target.y, `${attacker.name}'s ${attacker.weapon.name} Hit! (-${finalDamage})`);
                 updateHUD();
                 checkWin();
             }
@@ -581,19 +707,22 @@
             let viewportH = 520;
             let camX = 0, camY = 0, scale = 1.0;
 
+            let aliveFighters = fighters.filter(f => f.hp > 0);
+            let focusGroup = aliveFighters.length > 0 ? aliveFighters : fighters;
+
             if (cameraMode === 'dynamic') {
                 let sumX = 0, sumY = 0;
-                for (let f of fighters) {
+                for (let f of focusGroup) {
                     sumX += f.x + size/2;
                     sumY += f.y + size/2;
                 }
-                let midX = sumX / fighters.length;
-                let midY = sumY / fighters.length;
+                let midX = sumX / focusGroup.length;
+                let midY = sumY / focusGroup.length;
 
                 let maxSpread = 0;
-                for (let i = 0; i < fighters.length; i++) {
-                    for (let j = i + 1; j < fighters.length; j++) {
-                        let d = Math.hypot(fighters[i].x - fighters[j].x, fighters[i].y - fighters[j].y);
+                for (let i = 0; i < focusGroup.length; i++) {
+                    for (let j = i + 1; j < focusGroup.length; j++) {
+                        let d = Math.hypot(focusGroup[i].x - focusGroup[j].x, focusGroup[i].y - focusGroup[j].y);
                         if (d > maxSpread) maxSpread = d;
                     }
                 }
@@ -611,7 +740,7 @@
         }
 
         function updateHUD() {
-            let hudText = fighters.map(f => `F${f.id}: ${f.hp}`).join(' | ');
+            let hudText = fighters.map(f => `${f.name}: ${f.hp <= 0 ? 'DEAD' : f.hp} (${f.weapon.name})`).join(' | ');
             document.getElementById('hud-stats').innerText = hudText;
         }
 
@@ -631,8 +760,8 @@
                 gameRunning = false;
                 let winner = aliveFighters.length === 1 ? aliveFighters[0] : fighters[0];
 
-                document.getElementById('winner-text').innerText = `Fighter ${winner.id} Wins!`;
-                document.getElementById('winner-img').src = winner.el.src;
+                document.getElementById('winner-text').innerText = `${winner.name} Wins!`;
+                document.getElementById('winner-img').src = winner.wrapperEl.querySelector('.fighter').src;
                 document.getElementById('winner-banner').style.display = 'block';
 
                 setTimeout(() => location.reload(), 5000);
