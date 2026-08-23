@@ -6,8 +6,8 @@
     <title>Make Npcs Fight!</title>
     <style>
         body {
-            background-color: #0c0514;
-            color: #f3e8ff;
+            background-color: #111111;
+            color: #ffffff;
             font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
@@ -21,13 +21,12 @@
         #setup-screen {
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            background: #170b28;
+            gap: 15px;
+            background: #222222;
             padding: 30px;
-            border-radius: 10px;
-            border: 2px solid #8b5cf6;
+            border-radius: 4px;
             text-align: center;
-            width: 450px;
+            width: 400px;
         }
 
         .fighter-inputs {
@@ -39,23 +38,23 @@
         .input-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 5px;
             text-align: left;
         }
 
         button {
-            padding: 12px 24px;
-            background-color: #7c3aed;
+            padding: 10px 20px;
+            background-color: #444444;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
             font-weight: bold;
         }
 
         button:hover {
-            background-color: #6d28d9;
+            background-color: #555555;
         }
 
         #game-screen {
@@ -75,30 +74,30 @@
 
         #camera-controls {
             display: flex;
-            gap: 8px;
+            gap: 5px;
         }
 
         #camera-controls button {
-            padding: 5px 10px;
+            padding: 4px 8px;
             font-size: 12px;
-            background: #4c1d95;
+            background: #333333;
         }
 
         #viewport {
             width: 900px;
             height: 520px;
-            border: 4px solid #7c3aed;
+            border: 2px solid #555555;
             position: relative;
-            background: #07020d;
+            background: #1a1a1a;
             overflow: hidden;
-            border-radius: 6px;
+            border-radius: 4px;
         }
 
         #world {
             position: absolute;
             width: 3000px;
             height: 1800px;
-            background: radial-gradient(circle, #150926 0%, #07020d 100%);
+            background: #1e1e1e;
             transform-origin: 0 0;
         }
 
@@ -108,9 +107,8 @@
             top: 950px;
             width: 1500px;
             height: 60px;
-            background: #1e1b4b;
-            border: 4px solid #7c3aed;
-            border-radius: 8px;
+            background: #333333;
+            border-radius: 4px;
         }
 
         .fighter {
@@ -118,45 +116,43 @@
             width: 140px;
             height: 140px;
             object-fit: contain;
-            background: #170b28;
-            border: 4px solid #ffffff;
+            background: #2a2a2a;
+            border: 2px solid #ffffff;
             box-sizing: border-box;
-            border-radius: 12px;
+            border-radius: 4px;
         }
 
         .projectile {
             position: absolute;
             width: 24px;
             height: 24px;
-            background: #c084fc;
-            border: 2px solid #ffffff;
+            background: #ffffff;
             border-radius: 50%;
             pointer-events: none;
         }
 
         .lightning {
             position: absolute;
-            height: 8px;
-            background: #ffffff;
+            height: 6px;
+            background: #ffcc00;
             pointer-events: none;
             z-index: 15;
-            box-shadow: 0 0 12px #c084fc;
         }
 
         .floating-text {
             position: absolute;
             font-weight: bold;
-            font-size: 22px;
-            color: #f472b6;
+            font-size: 20px;
+            color: #ff4444;
             animation: floatUp 0.8s ease-out forwards;
             pointer-events: none;
-            text-shadow: 2px 2px 4px #000;
+            text-shadow: 1px 1px 2px #000;
             z-index: 20;
         }
 
         @keyframes floatUp {
             0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-50px); opacity: 0; }
+            100% { transform: translateY(-40px); opacity: 0; }
         }
 
         #winner-banner {
@@ -164,34 +160,31 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 45px;
+            font-size: 40px;
             font-weight: bold;
-            color: #4ade80;
-            text-shadow: 2px 2px 8px #000;
+            color: #ffffff;
             display: none;
             z-index: 30;
             text-align: center;
-            background: #170b28;
+            background: #222222;
             padding: 30px;
-            border: 4px solid #7c3aed;
-            border-radius: 15px;
-            box-shadow: 0 0 30px rgba(124, 58, 237, 0.5);
+            border: 2px solid #555555;
+            border-radius: 4px;
         }
 
         #winner-banner img {
-            width: 120px;
-            height: 120px;
+            width: 100px;
+            height: 100px;
             object-fit: contain;
-            border: 3px solid #ffffff;
-            border-radius: 10px;
+            border: 2px solid #ffffff;
+            border-radius: 4px;
             margin-top: 15px;
-            background: #0c0514;
+            background: #111;
         }
     </style>
 </head>
 <body>
 
-    <!-- Setup Screen -->
     <div id="setup-screen">
         <h2>Npc Maker</h2>
         <div class="fighter-inputs">
@@ -207,17 +200,16 @@
         <button onclick="startBattle()">Start Fight</button>
     </div>
 
-    <!-- Game Screen -->
     <div id="game-screen">
         <div id="hud">
-            <div id="hp1" style="color: #c084fc;">Fighter 1 HP: 1000</div>
+            <div id="hp1">Fighter 1 HP: 1000</div>
             <div id="camera-controls">
                 <button onclick="setCameraMode('dynamic')">Cam: Dynamic</button>
                 <button onclick="setCameraMode('f1')">Track F1</button>
                 <button onclick="setCameraMode('f2')">Track F2</button>
                 <button onclick="setCameraMode('zoomout')">Zoom Out</button>
             </div>
-            <div id="hp2" style="color: #f472b6;">Fighter 2 HP: 1000</div>
+            <div id="hp2">Fighter 2 HP: 1000</div>
         </div>
         <div id="viewport">
             <div id="world">
@@ -232,7 +224,6 @@
         </div>
     </div>
 
-    <!-- Background Music -->
     <audio id="bgm" loop>
         <source src="https://raw.githubusercontent.com/Peak123-svg/make-things-or-images-fight/main/Roblox%20Music%20-%20Gothic%20-%20Zero%20Project%204.mp3" type="audio/mpeg">
     </audio>
@@ -249,17 +240,20 @@
         let gameRunning = false;
         let cameraMode = 'dynamic';
 
+        // Massive Attack Pool with high damage and massive knockbacks
         const massiveAttackPool = [
-            { name: "Heavy Smash", damage: 45, type: "melee", kb: 30 },
-            { name: "Plasma Blast", damage: 60, type: "projectile", kb: 22 },
-            { name: "Lightning Zap", damage: 80, type: "lightning", kb: 25 },
-            { name: "Meteor Slam", damage: 95, type: "melee", kb: 40 },
-            { name: "Energy Dart", damage: 40, type: "projectile", kb: 18 },
-            { name: "Super Beam", damage: 85, type: "projectile", kb: 32 },
-            { name: "Thunder Storm", damage: 110, type: "lightning", kb: 35 },
-            { name: "Shadow Kick", damage: 50, type: "melee", kb: 28 },
-            { name: "Sonic Wave", damage: 65, type: "projectile", kb: 24 },
-            { name: "Divine Strike", damage: 90, type: "lightning", kb: 33 }
+            { name: "Heavy Punch", damage: 90, type: "melee", kb: 35 },
+            { name: "Fireball", damage: 110, type: "projectile", kb: 28 },
+            { name: "Thunder Strike", damage: 140, type: "lightning", kb: 32 },
+            { name: "Meteor Slam", damage: 160, type: "melee", kb: 50 },
+            { name: "Energy Blade", damage: 95, type: "projectile", kb: 25 },
+            { name: "Hyper Beam", damage: 150, type: "projectile", kb: 40 },
+            { name: "Mega Quake", damage: 180, type: "lightning", kb: 45 },
+            { name: "Shadow Kick", damage: 100, type: "melee", kb: 38 },
+            { name: "Sonic Blast", damage: 120, type: "projectile", kb: 30 },
+            { name: "God Smash", damage: 200, type: "lightning", kb: 55 },
+            { name: "Plasma Ray", damage: 130, type: "projectile", kb: 33 },
+            { name: "Earth Shatter", damage: 170, type: "melee", kb: 48 }
         ];
 
         function setCameraMode(mode) {
@@ -295,11 +289,11 @@
             let dx = targetX - fighter.x;
             
             if (Math.abs(dx) > 30) {
-                fighter.vx += Math.sign(dx) * 0.8;
+                fighter.vx += Math.sign(dx) * 0.7;
             }
             fighter.vx *= 0.85;
 
-            fighter.vx = Math.max(-12, Math.min(12, fighter.vx));
+            fighter.vx = Math.max(-10, Math.min(10, fighter.vx));
             fighter.x += fighter.vx;
 
             fighter.vy += 0.8;
@@ -316,8 +310,9 @@
             if (onPlatform) {
                 fighter.y = 950 - size;
                 fighter.vy = 0;
-                if (Math.random() < 0.015) {
-                    fighter.vy = -16;
+                // Rarely jump so they don't spam bounce
+                if (Math.random() < 0.005) {
+                    fighter.vy = -14;
                 }
             }
 
@@ -349,17 +344,17 @@
 
             if (distance < size) {
                 let angle = Math.atan2(dy, dx);
-                f1.vx = Math.cos(angle) * 22;
-                f1.vy = -14;
-                f2.vx = -Math.cos(angle) * 22;
-                f2.vy = -14;
+                f1.vx = Math.cos(angle) * 30;
+                f1.vy = -16;
+                f2.vx = -Math.cos(angle) * 30;
+                f2.vy = -16;
 
-                // Cooldown check so they don't spam hits instantly every frame
+                // Stricter cooldown so attacks don't overlap or spam
                 if (f1.cooldown === 0 && f2.cooldown === 0) {
                     let attacker = Math.random() > 0.5 ? 1 : 2;
                     triggerRandomAttack(attacker);
-                    f1.cooldown = 45; // ~0.75 second attack cooldown
-                    f2.cooldown = 45;
+                    f1.cooldown = 70; // ~1.1 second cooldown
+                    f2.cooldown = 70;
                 }
             }
 
@@ -375,8 +370,8 @@
 
                 if (tDist < size/2) {
                     target.hp -= p.damage;
-                    target.vy -= p.kb * 0.5;
-                    target.vx += (p.vx > 0 ? 15 : -15);
+                    target.vy -= p.kb * 0.6;
+                    target.vx += (p.vx > 0 ? 25 : -25);
                     if (target.hp < 0) target.hp = 0;
                     showWorldText(target.x, target.y, `Hit! (-${p.damage})`);
                     updateHUD();
@@ -414,8 +409,8 @@
                 projectiles.push({
                     x: attacker.x + size/2,
                     y: attacker.y + size/2,
-                    vx: Math.cos(angle) * 20,
-                    vy: Math.sin(angle) * 20,
+                    vx: Math.cos(angle) * 22,
+                    vy: Math.sin(angle) * 22,
                     damage: atk.damage,
                     kb: atk.kb,
                     owner: attackerNum,
@@ -424,7 +419,8 @@
                 showWorldText(attacker.x, attacker.y, atk.name);
             } else if (atk.type === "lightning") {
                 target.hp -= atk.damage;
-                target.vy -= atk.kb * 0.6;
+                target.vy -= atk.kb * 0.7;
+                target.vx += (attacker.x < target.x ? 25 : -25);
                 if (target.hp < 0) target.hp = 0;
 
                 let lEl = document.createElement('div');
@@ -445,13 +441,13 @@
                 document.getElementById('world').appendChild(lEl);
                 setTimeout(() => lEl.remove(), 250);
 
-                showWorldText(target.y ? target.x : target.x, target.y, `${atk.name} (-${atk.damage})`);
+                showWorldText(target.x, target.y, `${atk.name} (-${atk.damage})`);
                 updateHUD();
                 checkWin();
             } else {
                 target.hp -= atk.damage;
-                target.vy -= atk.kb * 0.6;
-                target.vx += (attacker.x < target.x ? 20 : -20);
+                target.vy -= atk.kb * 0.7;
+                target.vx += (attacker.x < target.x ? 30 : -30);
                 if (target.hp < 0) target.hp = 0;
                 showWorldText(target.x, target.y, `${atk.name} (-${atk.damage})`);
                 updateHUD();
