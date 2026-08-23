@@ -23,15 +23,17 @@
             flex-direction: column;
             gap: 15px;
             background: #170b28;
-            padding: 30px;
+            padding: 25px;
             border-radius: 10px;
             border: 2px solid #8b5cf6;
             text-align: center;
+            max-width: 500px;
         }
 
         .fighter-inputs {
             display: flex;
             gap: 20px;
+            justify-content: center;
         }
 
         .input-group {
@@ -40,19 +42,36 @@
             gap: 5px;
         }
 
+        #attacks-config {
+            max-height: 120px;
+            overflow-y: auto;
+            text-align: left;
+            background: #10061c;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #4c1d95;
+            font-size: 13px;
+        }
+
+        .attack-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
         button {
             padding: 10px 20px;
-            background-color: #8b5cf6;
+            background-color: #7c3aed;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
         }
 
         button:hover {
-            background-color: #7c3aed;
+            background-color: #6d28d9;
         }
 
         #game-screen {
@@ -65,28 +84,37 @@
         #hud {
             display: flex;
             justify-content: space-between;
-            width: 700px;
+            width: 800px;
             font-size: 18px;
             font-weight: bold;
         }
 
-        /* Viewport acts as the camera screen looking into the large world */
+        #camera-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        #camera-controls button {
+            padding: 5px 12px;
+            font-size: 12px;
+            background: #4c1d95;
+        }
+
         #viewport {
-            width: 700px;
-            height: 450px;
-            border: 4px solid #a78bfa;
+            width: 800px;
+            height: 480px;
+            border: 4px solid #7c3aed;
             position: relative;
             background: #07020d;
             overflow: hidden;
-            border-radius: 8px;
+            border-radius: 6px;
         }
 
-        /* Large world containing the fighters */
         #world {
             position: absolute;
-            width: 1400px;
-            height: 900px;
-            border: 2px dashed rgba(167, 139, 250, 0.2);
+            width: 2500px;
+            height: 1500px;
+            border: 2px dashed #4c1d95;
             transform-origin: 0 0;
         }
 
@@ -102,11 +130,10 @@
 
         .projectile {
             position: absolute;
-            width: 18px;
-            height: 18px;
-            background: #c084fc;
-            border-radius: 50%;
-            box-shadow: 0 0 10px #e879f9;
+            width: 16px;
+            height: 16px;
+            background: #d8b4fe;
+            border: 2px solid #ffffff;
             pointer-events: none;
         }
 
@@ -145,24 +172,38 @@
 
     <!-- Setup Screen -->
     <div id="setup-screen">
-        <h2>Select your fighters</h2>
+        <h2>Configure Image Brawler</h2>
         <div class="fighter-inputs">
             <div class="input-group">
-                <label>Fighter 1</label>
+                <label>Fighter 1 Image</label>
                 <input type="file" id="img1-input" accept="image/*">
             </div>
             <div class="input-group">
-                <label>Fighter 2</label>
+                <label>Fighter 2 Image</label>
                 <input type="file" id="img2-input" accept="image/*">
             </div>
         </div>
-        <button onclick="startBattle()">Start Fight!</button>
+
+        <label style="font-size: 14px; font-weight: bold;">Customize Attacks:</label>
+        <div id="attacks-config">
+            <div class="attack-item"><input type="text" id="atk1-name" value="Heavy Punch 👊" style="width:55%;"> <input type="number" id="atk1-dmg" value="45" style="width:25%;"></div>
+            <div class="attack-item"><input type="text" id="atk2-name" value="Plasma Laser ⚡" style="width:55%;"> <input type="number" id="atk2-dmg" value="65" style="width:25%;"></div>
+            <div class="attack-item"><input type="text" id="atk3-name" value="Roundhouse Kick 💥" style="width:55%;"> <input type="number" id="atk3-dmg" value="50" style="width:25%;"></div>
+            <div class="attack-item"><input type="text" id="atk4-name" value="Energy Dart 🗡️" style="width:55%;"> <input type="number" id="atk4-dmg" value="55" style="width:25%;"></div>
+        </div>
+        <button onclick="startBattle()">Start Epic Fight!</button>
     </div>
 
     <!-- Game Screen -->
     <div id="game-screen">
         <div id="hud">
-            <div id="hp1" style="color: #a78bfa;">Fighter 1 HP: 1000</div>
+            <div id="hp1" style="color: #c084fc;">Fighter 1 HP: 1000</div>
+            <div id="camera-controls">
+                <button onclick="setCameraMode('dynamic')">Cam: Dynamic</button>
+                <button onclick="setCameraMode('f1')">Track F1</button>
+                <button onclick="setCameraMode('f2')">Track F2</button>
+                <button onclick="setCameraMode('zoomout')">Zoom Out</button>
+            </div>
             <div id="hp2" style="color: #f472b6;">Fighter 2 HP: 1000</div>
         </div>
         <div id="viewport">
@@ -180,22 +221,21 @@
     </audio>
 
     <script>
-        // Large World Dimensions
-        const worldWidth = 1400;
-        const worldHeight = 900;
+        const worldWidth = 2500;
+        const worldHeight = 1500;
         const size = 90;
 
-        let f1 = { x: 200, y: 200, vx: 6, vy: 5, hp: 1000, el: document.getElementById('fighter1') };
-        let f2 = { x: 1100, y: 700, vx: -6, vy: -5, hp: 1000, el: document.getElementById('fighter2') };
+        let f1 = { x: 300, y: 300, vx: 10, vy: 9, hp: 1000, el: document.getElementById('fighter1') };
+        let f2 = { x: 2100, y: 1200, vx: -10, vy: -9, hp: 1000, el: document.getElementById('fighter2') };
         let projectiles = [];
         let gameRunning = false;
+        let cameraMode = 'dynamic'; // dynamic, f1, f2, zoomout
 
-        const attacks = [
-            { name: "Punch! 👊", damage: 40, type: "melee" },
-            { name: "Laser! ⚡", damage: 60, type: "projectile" },
-            { name: "Kick! 💥", damage: 50, type: "melee" },
-            { name: "Slash! 🗡️", damage: 55, type: "projectile" }
-        ];
+        let customAttacks = [];
+
+        function setCameraMode(mode) {
+            cameraMode = mode;
+        }
 
         function startBattle() {
             const file1 = document.getElementById('img1-input').files[0];
@@ -205,6 +245,14 @@
                 alert("Please upload both images!");
                 return;
             }
+
+            // Pull custom attacks from inputs
+            customAttacks = [
+                { name: document.getElementById('atk1-name').value, damage: Number(document.getElementById('atk1-dmg').value), type: "melee" },
+                { name: document.getElementById('atk2-name').value, damage: Number(document.getElementById('atk2-dmg').value), type: "projectile" },
+                { name: document.getElementById('atk3-name').value, damage: Number(document.getElementById('atk3-dmg').value), type: "melee" },
+                { name: document.getElementById('atk4-name').value, damage: Number(document.getElementById('atk4-dmg').value), type: "projectile" }
+            ];
 
             f1.el.src = URL.createObjectURL(file1);
             f2.el.src = URL.createObjectURL(file2);
@@ -222,34 +270,31 @@
         function updateGame() {
             if (!gameRunning) return;
 
-            // Fast Movement
+            // Ultra-fast movement
             f1.x += f1.vx;
             f1.y += f1.vy;
             f2.x += f2.vx;
             f2.y += f2.vy;
 
-            // World Wall Bounces
+            // Massive World Wall Bounces
             if (f1.x <= 0 || f1.x >= worldWidth - size) f1.vx *= -1;
             if (f1.y <= 0 || f1.y >= worldHeight - size) f1.vy *= -1;
             if (f2.x <= 0 || f2.x >= worldWidth - size) f2.vx *= -1;
             if (f2.y <= 0 || f2.y >= worldHeight - size) f2.vy *= -1;
 
-            // Aggressive Collision Detection (Always forces a crash/fight)
+            // Aggressive Collisions
             let dx = (f1.x + size/2) - (f2.x + size/2);
             let dy = (f1.y + size/2) - (f2.y + size/2);
             let distance = Math.hypot(dx, dy);
 
             if (distance < size + 15) {
-                // Bounce and swap vector momentum
                 let tempVx = f1.vx; let tempVy = f1.vy;
                 f1.vx = f2.vx; f1.vy = f2.vy;
                 f2.vx = tempVx; f2.vy = tempVy;
 
-                // Nudge them apart to prevent clipping
-                f1.x += f1.vx; f1.y += f1.vy;
-                f2.x += f2.vx; f2.y += f2.vy;
+                f1.x += f1.vx * 2; f1.y += f1.vy * 2;
+                f2.x += f2.vx * 2; f2.y += f2.vy * 2;
 
-                // Trigger a combat strike on crash
                 let attacker = Math.random() > 0.5 ? 1 : 2;
                 triggerAttack(attacker);
             }
@@ -279,13 +324,12 @@
                 }
             }
 
-            // Render Fighter Positions
+            // Render Positions
             f1.el.style.left = f1.x + 'px';
             f1.el.style.top = f1.y + 'px';
             f2.el.style.left = f2.x + 'px';
             f2.el.style.top = f2.y + 'px';
 
-            // Dynamic Camera Tracking (Centers between both fighters & handles zoom)
             updateCamera();
 
             requestAnimationFrame(updateGame);
@@ -293,7 +337,7 @@
 
         function triggerAttack(attackerNum) {
             if (!gameRunning) return;
-            let atk = attacks[Math.floor(Math.random() * attacks.length)];
+            let atk = customAttacks[Math.floor(Math.random() * customAttacks.length)];
             let attacker = attackerNum === 1 ? f1 : f2;
             let target = attackerNum === 1 ? f2 : f1;
 
@@ -306,8 +350,8 @@
                 projectiles.push({
                     x: attacker.x + size/2,
                     y: attacker.y + size/2,
-                    vx: Math.cos(angle) * 9,
-                    vy: Math.sin(angle) * 9,
+                    vx: Math.cos(angle) * 14,
+                    vy: Math.sin(angle) * 14,
                     damage: atk.damage,
                     owner: attackerNum,
                     el: pEl
@@ -316,27 +360,37 @@
             } else {
                 target.hp -= atk.damage;
                 if (target.hp < 0) target.hp = 0;
-                showWorldText(target.y ? target.x : 0, target.y, `${atk.name} (-${atk.damage})`);
+                showWorldText(target.x, target.y, `${atk.name} (-${atk.damage})`);
                 updateHUD();
                 checkWin();
             }
         }
 
         function updateCamera() {
-            let viewportW = 700;
-            let viewportH = 450;
+            let viewportW = 800;
+            let viewportH = 480;
+            let camX = 0, camY = 0, scale = 1.0;
 
-            // Find midpoint between fighters
-            let midX = (f1.x + f2.x) / 2 + size/2;
-            let midY = (f1.y + f2.y) / 2 + size/2;
-
-            // Distance between fighters to dynamically zoom out if they are far apart
-            let fighterDist = Math.hypot(f1.x - f2.x, f1.y - f2.y);
-            let scale = Math.max(0.55, Math.min(1.0, 700 / (fighterDist + 250)));
-
-            // Center camera on midpoint
-            let camX = viewportW / 2 - midX * scale;
-            let camY = viewportH / 2 - midY * scale;
+            if (cameraMode === 'dynamic') {
+                let midX = (f1.x + f2.x) / 2 + size/2;
+                let midY = (f1.y + f2.y) / 2 + size/2;
+                let fighterDist = Math.hypot(f1.x - f2.x, f1.y - f2.y);
+                scale = Math.max(0.35, Math.min(1.0, 800 / (fighterDist + 300)));
+                camX = viewportW / 2 - midX * scale;
+                camY = viewportH / 2 - midY * scale;
+            } else if (cameraMode === 'f1') {
+                scale = 0.8;
+                camX = viewportW / 2 - (f1.x + size/2) * scale;
+                camY = viewportH / 2 - (f1.y + size/2) * scale;
+            } else if (cameraMode === 'f2') {
+                scale = 0.8;
+                camX = viewportW / 2 - (f2.x + size/2) * scale;
+                camY = viewportH / 2 - (f2.y + size/2) * scale;
+            } else if (cameraMode === 'zoomout') {
+                scale = 0.32; // Shows the entire giant world
+                camX = (viewportW - worldWidth * scale) / 2;
+                camY = (viewportH - worldHeight * scale) / 2;
+            }
 
             document.getElementById('world').style.transform = `translate(${camX}px, ${camY}px) scale(${scale})`;
         }
