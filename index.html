@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Brawler Platform Arena</title>
+    <title>Make Npcs Fight!</title>
     <style>
         body {
             background-color: #0c0514;
@@ -102,7 +102,6 @@
             transform-origin: 0 0;
         }
 
-        /* Central Platform */
         .platform {
             position: absolute;
             left: 750px;
@@ -165,13 +164,28 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 55px;
+            font-size: 45px;
             font-weight: bold;
             color: #4ade80;
             text-shadow: 2px 2px 8px #000;
             display: none;
             z-index: 30;
             text-align: center;
+            background: #170b28;
+            padding: 30px;
+            border: 4px solid #7c3aed;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(124, 58, 237, 0.5);
+        }
+
+        #winner-banner img {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            border: 3px solid #ffffff;
+            border-radius: 10px;
+            margin-top: 15px;
+            background: #0c0514;
         }
     </style>
 </head>
@@ -179,7 +193,7 @@
 
     <!-- Setup Screen -->
     <div id="setup-screen">
-        <h2>Platform Bot Arena</h2>
+        <h2>Npc Maker</h2>
         <div class="fighter-inputs">
             <div class="input-group">
                 <label>Fighter 1 Image</label>
@@ -190,7 +204,7 @@
                 <input type="file" id="img2-input" accept="image/*">
             </div>
         </div>
-        <button onclick="startBattle()">Start Bot Brawl!</button>
+        <button onclick="startBattle()">Start Fight</button>
     </div>
 
     <!-- Game Screen -->
@@ -208,7 +222,10 @@
         <div id="viewport">
             <div id="world">
                 <div class="platform"></div>
-                <div id="winner-banner"></div>
+                <div id="winner-banner">
+                    <div id="winner-text"></div>
+                    <img id="winner-img" src="" alt="Winner">
+                </div>
                 <img id="fighter1" class="fighter" src="">
                 <img id="fighter2" class="fighter" src="">
             </div>
@@ -225,24 +242,24 @@
         const worldHeight = 1800;
         const size = 140;
 
-        let f1 = { x: 900, y: 800, vx: 0, vy: 0, hp: 1000, el: document.getElementById('fighter1') };
-        let f2 = { x: 2000, y: 800, vx: 0, vy: 0, hp: 1000, el: document.getElementById('fighter2') };
+        let f1 = { x: 900, y: 800, vx: 0, vy: 0, hp: 1000, cooldown: 0, el: document.getElementById('fighter1') };
+        let f2 = { x: 2000, y: 800, vx: 0, vy: 0, hp: 1000, cooldown: 0, el: document.getElementById('fighter2') };
         
         let projectiles = [];
         let gameRunning = false;
         let cameraMode = 'dynamic';
 
         const massiveAttackPool = [
-            { name: "Heavy Smash", damage: 40, type: "melee", kb: 18 },
-            { name: "Plasma Blast", damage: 55, type: "projectile", kb: 12 },
-            { name: "Lightning Zap", damage: 75, type: "lightning", kb: 15 },
-            { name: "Meteor Slam", damage: 90, type: "melee", kb: 25 },
-            { name: "Energy Dart", damage: 35, type: "projectile", kb: 10 },
-            { name: "Super Beam", damage: 80, type: "projectile", kb: 20 },
-            { name: "Thunder Storm", damage: 100, type: "lightning", kb: 22 },
-            { name: "Shadow Kick", damage: 45, type: "melee", kb: 16 },
-            { name: "Sonic Wave", damage: 60, type: "projectile", kb: 14 },
-            { name: "Divine Strike", damage: 85, type: "lightning", kb: 20 }
+            { name: "Heavy Smash", damage: 45, type: "melee", kb: 30 },
+            { name: "Plasma Blast", damage: 60, type: "projectile", kb: 22 },
+            { name: "Lightning Zap", damage: 80, type: "lightning", kb: 25 },
+            { name: "Meteor Slam", damage: 95, type: "melee", kb: 40 },
+            { name: "Energy Dart", damage: 40, type: "projectile", kb: 18 },
+            { name: "Super Beam", damage: 85, type: "projectile", kb: 32 },
+            { name: "Thunder Storm", damage: 110, type: "lightning", kb: 35 },
+            { name: "Shadow Kick", damage: 50, type: "melee", kb: 28 },
+            { name: "Sonic Wave", damage: 65, type: "projectile", kb: 24 },
+            { name: "Divine Strike", damage: 90, type: "lightning", kb: 33 }
         ];
 
         function setCameraMode(mode) {
@@ -272,6 +289,8 @@
         }
 
         function updateBotAI(fighter, opponent) {
+            if (fighter.cooldown > 0) fighter.cooldown--;
+
             let targetX = opponent.x;
             let dx = targetX - fighter.x;
             
@@ -330,13 +349,18 @@
 
             if (distance < size) {
                 let angle = Math.atan2(dy, dx);
-                f1.vx = Math.cos(angle) * 15;
-                f1.vy = -8;
-                f2.vx = -Math.cos(angle) * 15;
-                f2.vy = -8;
+                f1.vx = Math.cos(angle) * 22;
+                f1.vy = -14;
+                f2.vx = -Math.cos(angle) * 22;
+                f2.vy = -14;
 
-                let attacker = Math.random() > 0.5 ? 1 : 2;
-                triggerRandomAttack(attacker);
+                // Cooldown check so they don't spam hits instantly every frame
+                if (f1.cooldown === 0 && f2.cooldown === 0) {
+                    let attacker = Math.random() > 0.5 ? 1 : 2;
+                    triggerRandomAttack(attacker);
+                    f1.cooldown = 45; // ~0.75 second attack cooldown
+                    f2.cooldown = 45;
+                }
             }
 
             for (let i = projectiles.length - 1; i >= 0; i--) {
@@ -351,7 +375,8 @@
 
                 if (tDist < size/2) {
                     target.hp -= p.damage;
-                    target.vy -= p.kb * 0.4;
+                    target.vy -= p.kb * 0.5;
+                    target.vx += (p.vx > 0 ? 15 : -15);
                     if (target.hp < 0) target.hp = 0;
                     showWorldText(target.x, target.y, `Hit! (-${p.damage})`);
                     updateHUD();
@@ -389,8 +414,8 @@
                 projectiles.push({
                     x: attacker.x + size/2,
                     y: attacker.y + size/2,
-                    vx: Math.cos(angle) * 18,
-                    vy: Math.sin(angle) * 18,
+                    vx: Math.cos(angle) * 20,
+                    vy: Math.sin(angle) * 20,
                     damage: atk.damage,
                     kb: atk.kb,
                     owner: attackerNum,
@@ -399,7 +424,7 @@
                 showWorldText(attacker.x, attacker.y, atk.name);
             } else if (atk.type === "lightning") {
                 target.hp -= atk.damage;
-                target.vy -= atk.kb * 0.5;
+                target.vy -= atk.kb * 0.6;
                 if (target.hp < 0) target.hp = 0;
 
                 let lEl = document.createElement('div');
@@ -420,12 +445,13 @@
                 document.getElementById('world').appendChild(lEl);
                 setTimeout(() => lEl.remove(), 250);
 
-                showWorldText(target.x, target.y, `${atk.name} (-${atk.damage})`);
+                showWorldText(target.y ? target.x : target.x, target.y, `${atk.name} (-${atk.damage})`);
                 updateHUD();
                 checkWin();
             } else {
                 target.hp -= atk.damage;
-                target.vy -= atk.kb * 0.5;
+                target.vy -= atk.kb * 0.6;
+                target.vx += (attacker.x < target.x ? 20 : -20);
                 if (target.hp < 0) target.hp = 0;
                 showWorldText(target.x, target.y, `${atk.name} (-${atk.damage})`);
                 updateHUD();
@@ -480,11 +506,14 @@
         function checkWin() {
             if (f1.hp <= 0 || f2.hp <= 0) {
                 gameRunning = false;
-                let winner = f1.hp <= 0 ? "Fighter 2" : "Fighter 1";
-                let banner = document.getElementById('winner-banner');
-                banner.innerText = `${winner} Wins!`;
-                banner.style.display = 'block';
-                setTimeout(() => location.reload(), 4000);
+                let winnerName = f1.hp <= 0 ? "Fighter 2" : "Fighter 1";
+                let winnerImageSrc = f1.hp <= 0 ? f2.el.src : f1.el.src;
+
+                document.getElementById('winner-text').innerText = `${winnerName} Wins!`;
+                document.getElementById('winner-img').src = winnerImageSrc;
+                document.getElementById('winner-banner').style.display = 'block';
+
+                setTimeout(() => location.reload(), 5000);
             }
         }
     </script>
