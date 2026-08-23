@@ -26,14 +26,20 @@
             padding: 30px;
             border-radius: 4px;
             text-align: center;
-            width: 480px;
+            width: 520px;
+        }
+
+        .team-names-container {
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
         }
 
         .fighter-inputs {
             display: flex;
             flex-direction: column;
             gap: 10px;
-            max-height: 320px;
+            max-height: 280px;
             overflow-y: auto;
             padding-right: 5px;
         }
@@ -55,7 +61,7 @@
             text-align: left;
         }
 
-        .input-group input[type="text"] {
+        .input-group input[type="text"], .input-group select {
             padding: 5px;
             background: #1a1a1a;
             color: white;
@@ -218,7 +224,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 40px;
+            font-size: 36px;
             font-weight: bold;
             color: #ffffff;
             display: none;
@@ -244,32 +250,26 @@
 <body>
 
     <div id="setup-screen">
-        <h2>Npc Maker Arena</h2>
+        <h2>Npc Maker Arena (Teams)</h2>
+        
+        <div class="team-names-container">
+            <div class="input-group" style="flex: 1;">
+                <label>Team 1 Name:</label>
+                <input type="text" id="team1-name" value="Team Alpha">
+            </div>
+            <div class="input-group" style="flex: 1;">
+                <label>Team 2 Name:</label>
+                <input type="text" id="team2-name" value="Team Bravo">
+            </div>
+        </div>
+
         <div class="input-group">
             <label>Number of Fighters:</label>
-            <input type="number" id="fighter-count" min="2" value="2" onchange="updateFighterInputs()" style="padding: 6px; background: #333; color: white; border: 1px solid #555;">
+            <input type="number" id="fighter-count" min="2" value="4" onchange="updateFighterInputs()" style="padding: 6px; background: #333; color: white; border: 1px solid #555;">
         </div>
+
         <div class="fighter-inputs" id="fighter-inputs-container">
-            <div class="fighter-input-row">
-                <div class="input-group">
-                    <label>Name 1</label>
-                    <input type="text" id="name0" value="Fighter 1">
-                </div>
-                <div class="input-group">
-                    <label>Image 1</label>
-                    <input type="file" id="img0-input" accept="image/*">
-                </div>
-            </div>
-            <div class="fighter-input-row">
-                <div class="input-group">
-                    <label>Name 2</label>
-                    <input type="text" id="name1" value="Fighter 2">
-                </div>
-                <div class="input-group">
-                    <label>Image 2</label>
-                    <input type="file" id="img1-input" accept="image/*">
-                </div>
-            </div>
+            <!-- Dynamically populated -->
         </div>
         <button onclick="startBattle()">Start Fight</button>
     </div>
@@ -308,6 +308,7 @@
         let gameRunning = false;
         let cameraMode = 'dynamic';
         let currentPlatforms = [];
+        let teamNames = { team1: "Team Alpha", team2: "Team Bravo" };
 
         const weaponsPool = [
             { name: "Sword", type: "melee", damageMultiplier: 1.2, range: 40 },
@@ -364,7 +365,12 @@
             if (isNaN(count) || count < 2) count = 2;
             let container = document.getElementById('fighter-inputs-container');
             container.innerHTML = '';
+            
+            let t1Name = document.getElementById('team1-name') ? document.getElementById('team1-name').value : "Team Alpha";
+            let t2Name = document.getElementById('team2-name') ? document.getElementById('team2-name').value : "Team Bravo";
+
             for (let i = 0; i < count; i++) {
+                let defaultTeam = i % 2 === 0 ? 'team1' : 'team2';
                 container.innerHTML += `
                     <div class="fighter-input-row">
                         <div class="input-group">
@@ -372,13 +378,23 @@
                             <input type="text" id="name${i}" value="Fighter ${i + 1}">
                         </div>
                         <div class="input-group">
-                            <label>Image ${i + 1}</label>
-                            <input type="file" id="img${i}-input" accept="image/*">
+                            <label>Team</label>
+                            <select id="team${i}">
+                                <option value="team1" ${defaultTeam === 'team1' ? 'selected' : ''}>${t1Name}</option>
+                                <option value="team2" ${defaultTeam === 'team2' ? 'selected' : ''}>${t2Name}</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Image</label>
+                            <input type="file" id="img${i}-input" accept="image/*" style="width: 130px;">
                         </div>
                     </div>
                 `;
             }
         }
+
+        // Initialize default setup inputs on load
+        updateFighterInputs();
 
         function setCameraMode(mode) {
             cameraMode = mode;
@@ -405,20 +421,26 @@
         function startBattle() {
             let count = parseInt(document.getElementById('fighter-count').value);
             if (isNaN(count) || count < 2) count = 2;
+            
+            teamNames.team1 = document.getElementById('team1-name').value.trim() || "Team Alpha";
+            teamNames.team2 = document.getElementById('team2-name').value.trim() || "Team Bravo";
+            
             fighters = [];
-
             let fightersContainer = document.getElementById('fighters-container');
             fightersContainer.innerHTML = '';
 
             for (let i = 0; i < count; i++) {
                 let fileInput = document.getElementById(`img${i}-input`);
                 let nameInput = document.getElementById(`name${i}`);
+                let teamSelect = document.getElementById(`team${i}`);
+
                 if (!fileInput || !fileInput.files[0]) {
                     alert(`Please upload images for all ${count} fighters!`);
                     return;
                 }
 
                 let fighterName = nameInput && nameInput.value.trim() !== "" ? nameInput.value.trim() : `Fighter ${i + 1}`;
+                let assignedTeam = teamSelect ? teamSelect.value : 'team1';
                 let assignedWeapon = weaponsPool[Math.floor(Math.random() * weaponsPool.length)];
 
                 let wrapper = document.createElement('div');
@@ -430,7 +452,7 @@
 
                 let userTag = document.createElement('div');
                 userTag.className = 'username-tag';
-                userTag.innerText = fighterName;
+                userTag.innerText = `[${assignedTeam === 'team1' ? teamNames.team1 : teamNames.team2}] ${fighterName}`;
 
                 let weaponBadge = document.createElement('div');
                 weaponBadge.className = 'weapon-badge';
@@ -446,6 +468,7 @@
                 fighters.push({
                     id: i + 1,
                     name: fighterName,
+                    team: assignedTeam,
                     x: spawnX,
                     y: 700,
                     vx: 0,
@@ -474,12 +497,13 @@
             if (fighter.hp <= 0) return;
             if (fighter.cooldown > 0) fighter.cooldown--;
 
-            let aliveTargets = targets.filter(t => t.hp > 0);
-            if (aliveTargets.length === 0) return;
+            // Filter targets to ONLY target enemies (fighters on a different team)
+            let enemyTargets = targets.filter(t => t.hp > 0 && t.team !== fighter.team);
+            if (enemyTargets.length === 0) return;
 
-            let closest = aliveTargets[0];
+            let closest = enemyTargets[0];
             let minDist = Infinity;
-            for (let t of aliveTargets) {
+            for (let t of enemyTargets) {
                 let d = Math.hypot(t.x - fighter.x, t.y - fighter.y);
                 if (d < minDist) {
                     minDist = d;
@@ -570,8 +594,9 @@
                         fB.x += pushDir * 2;
                     }
 
+                    // Only physical crash-attacks if they are on different teams
                     let distance = Math.hypot((fA.x + size/2) - (fB.x + size/2), (fA.y + size/2) - (fB.y + size/2));
-                    if (distance < size) {
+                    if (distance < size && fA.team !== fB.team) {
                         let angle = Math.atan2((fA.y + size/2) - (fB.y + size/2), (fA.x + size/2) - (fB.x + size/2));
                         fA.vx = Math.cos(angle) * 25;
                         fA.vy = -14;
@@ -597,8 +622,11 @@
                 p.el.style.top = p.y + 'px';
 
                 let hitTarget = null;
+                let ownerFighter = fighters.find(f => f.id === p.ownerId);
+
                 for (let f of fighters) {
-                    if (f.id !== p.ownerId && f.hp > 0) {
+                    // Projectile hits enemies only
+                    if (ownerFighter && f.team !== ownerFighter.team && f.hp > 0) {
                         let tDist = Math.hypot(p.x - (f.x + size/2), p.y - (f.y + size/2));
                         if (tDist < size/2) {
                             hitTarget = f;
@@ -636,7 +664,7 @@
         }
 
         function executeAttack(attacker, target) {
-            if (!gameRunning || target.hp <= 0) return;
+            if (!gameRunning || target.hp <= 0 || attacker.team === target.team) return;
             let baseAttack = massiveAttackPool[Math.floor(Math.random() * massiveAttackPool.length)];
             let finalDamage = Math.round(baseAttack.damage * attacker.weapon.damageMultiplier);
 
@@ -740,7 +768,10 @@
         }
 
         function updateHUD() {
-            let hudText = fighters.map(f => `${f.name}: ${f.hp <= 0 ? 'DEAD' : f.hp} (${f.weapon.name})`).join(' | ');
+            let hudText = fighters.map(f => {
+                let tName = f.team === 'team1' ? teamNames.team1 : teamNames.team2;
+                return `[${tName}] ${f.name}: ${f.hp <= 0 ? 'DEAD' : f.hp}`;
+            }).join(' | ');
             document.getElementById('hud-stats').innerText = hudText;
         }
 
@@ -756,12 +787,18 @@
 
         function checkWin() {
             let aliveFighters = fighters.filter(f => f.hp > 0);
-            if (aliveFighters.length <= 1 && fighters.length > 1) {
-                gameRunning = false;
-                let winner = aliveFighters.length === 1 ? aliveFighters[0] : fighters[0];
+            let aliveTeams = [...new Set(aliveFighters.map(f => f.team))];
 
-                document.getElementById('winner-text').innerText = `${winner.name} Wins!`;
-                document.getElementById('winner-img').src = winner.wrapperEl.querySelector('.fighter').src;
+            if (aliveTeams.length <= 1 && fighters.length > 1) {
+                gameRunning = false;
+                let winningTeamKey = aliveTeams.length === 1 ? aliveTeams[0] : null;
+                let winningTeamLabel = winningTeamKey === 'team1' ? teamNames.team1 : (winningTeamKey === 'team2' ? teamNames.team2 : "No One");
+
+                document.getElementById('winner-text').innerText = `${winningTeamLabel} Wins!`;
+                
+                // Show first alive winner's image if available, otherwise first fighter's image
+                let sampleWinner = aliveFighters.length > 0 ? aliveFighters[0] : fighters[0];
+                document.getElementById('winner-img').src = sampleWinner.wrapperEl.querySelector('.fighter').src;
                 document.getElementById('winner-banner').style.display = 'block';
 
                 setTimeout(() => location.reload(), 5000);
