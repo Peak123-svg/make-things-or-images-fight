@@ -103,10 +103,6 @@
 
         .platform {
             position: absolute;
-            left: 750px;
-            top: 950px;
-            width: 1500px;
-            height: 60px;
             background: #333333;
             border-radius: 4px;
         }
@@ -213,7 +209,7 @@
         </div>
         <div id="viewport">
             <div id="world">
-                <div class="platform"></div>
+                <div id="platforms-container"></div>
                 <div id="winner-banner">
                     <div id="winner-text"></div>
                     <img id="winner-img" src="" alt="Winner">
@@ -239,8 +235,32 @@
         let projectiles = [];
         let gameRunning = false;
         let cameraMode = 'dynamic';
+        let currentPlatforms = [];
 
-        // Massive Attack Pool with high damage and massive knockbacks
+        // Map Layout Pool
+        const mapPool = [
+            // Map 1: Classic Wide Platform
+            [ { x: 750, y: 950, w: 1500, h: 60 } ],
+            // Map 2: Three Tier Platforms
+            [
+                { x: 600, y: 1000, w: 600, h: 50 },
+                { x: 1800, y: 1000, w: 600, h: 50 },
+                { x: 1100, y: 800, w: 800, h: 50 }
+            ],
+            // Map 3: Floating Pillars
+            [
+                { x: 500, y: 1100, w: 400, h: 50 },
+                { x: 1300, y: 950, w: 400, h: 50 },
+                { x: 2100, y: 1100, w: 400, h: 50 }
+            ],
+            // Map 4: Massive Central Fortress
+            [
+                { x: 1000, y: 900, w: 1000, h: 80 },
+                { x: 700, y: 700, w: 300, h: 40 },
+                { x: 2000, y: 700, w: 300, h: 40 }
+            ]
+        ];
+
         const massiveAttackPool = [
             { name: "Heavy Punch", damage: 90, type: "melee", kb: 35 },
             { name: "Fireball", damage: 110, type: "projectile", kb: 28 },
@@ -260,6 +280,25 @@
             cameraMode = mode;
         }
 
+        function loadRandomMap() {
+            const container = document.getElementById('platforms-container');
+            container.innerHTML = '';
+            
+            // Pick random map
+            let randomMap = mapPool[Math.floor(Math.random() * mapPool.length)];
+            currentPlatforms = randomMap;
+
+            randomMap.forEach(p => {
+                let pDiv = document.createElement('div');
+                pDiv.className = 'platform';
+                pDiv.style.left = p.x + 'px';
+                pDiv.style.top = p.y + 'px';
+                pDiv.style.width = p.w + 'px';
+                pDiv.style.height = p.h + 'px';
+                container.appendChild(pDiv);
+            });
+        }
+
         function startBattle() {
             const file1 = document.getElementById('img1-input').files[0];
             const file2 = document.getElementById('img2-input').files[0];
@@ -271,6 +310,8 @@
 
             f1.el.src = URL.createObjectURL(file1);
             f2.el.src = URL.createObjectURL(file2);
+
+            loadRandomMap();
 
             document.getElementById('setup-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'flex';
@@ -296,34 +337,40 @@
             fighter.vx = Math.max(-10, Math.min(10, fighter.vx));
             fighter.x += fighter.vx;
 
-            fighter.vy += 0.8;
+            fighter.vy += 0.8; // Gravity
             fighter.y += fighter.vy;
 
-            let onPlatform = (
-                fighter.x + size > 750 &&
-                fighter.x < 750 + 1500 &&
-                fighter.y + size >= 950 &&
-                fighter.y + size <= 970 &&
-                fighter.vy >= 0
-            );
-
-            if (onPlatform) {
-                fighter.y = 950 - size;
-                fighter.vy = 0;
-                // Rarely jump so they don't spam bounce
-                if (Math.random() < 0.005) {
-                    fighter.vy = -14;
+            // Check collision with any platform in the current map layout
+            let landedOnPlatform = false;
+            for (let p of currentPlatforms) {
+                if (
+                    fighter.x + size > p.x &&
+                    fighter.x < p.x + p.w &&
+                    fighter.y + size >= p.y &&
+                    fighter.y + size <= p.y + 20 &&
+                    fighter.vy >= 0
+                ) {
+                    fighter.y = p.y - size;
+                    fighter.vy = 0;
+                    landedOnPlatform = true;
+                    break;
                 }
             }
 
-            if (fighter.y > 1550) {
+            // Only allow jumping if they are securely standing on a platform (fixes air-jump spam)
+            if (landedOnPlatform && Math.random() < 0.006) {
+                fighter.vy = -15;
+            }
+
+            // Fall damage / respawn off map
+            if (fighter.y > 1650) {
                 fighter.hp -= 30;
                 if (fighter.hp < 0) fighter.hp = 0;
                 showWorldText(fighter.x, fighter.y, "Fall! (-30)");
                 updateHUD();
                 checkWin();
 
-                fighter.y = 800;
+                fighter.y = 600;
                 fighter.vy = -10;
                 fighter.x = 1200 + (Math.random() * 600 - 300);
             }
@@ -349,11 +396,10 @@
                 f2.vx = -Math.cos(angle) * 30;
                 f2.vy = -16;
 
-                // Stricter cooldown so attacks don't overlap or spam
                 if (f1.cooldown === 0 && f2.cooldown === 0) {
                     let attacker = Math.random() > 0.5 ? 1 : 2;
                     triggerRandomAttack(attacker);
-                    f1.cooldown = 70; // ~1.1 second cooldown
+                    f1.cooldown = 70;
                     f2.cooldown = 70;
                 }
             }
