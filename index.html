@@ -225,12 +225,6 @@
         const worldHeight = 1800;
         const size = 140;
 
-        // Platform bounds
-        const platX = 750;
-        const platY = 950;
-        const platW = 1500;
-        const platH = 60px;
-
         let f1 = { x: 900, y: 800, vx: 0, vy: 0, hp: 1000, el: document.getElementById('fighter1') };
         let f2 = { x: 2000, y: 800, vx: 0, vy: 0, hp: 1000, el: document.getElementById('fighter2') };
         
@@ -238,7 +232,6 @@
         let gameRunning = false;
         let cameraMode = 'dynamic';
 
-        // Massive variety of attacks
         const massiveAttackPool = [
             { name: "Heavy Smash", damage: 40, type: "melee", kb: 18 },
             { name: "Plasma Blast", damage: 55, type: "projectile", kb: 12 },
@@ -279,27 +272,20 @@
         }
 
         function updateBotAI(fighter, opponent) {
-            // Bot AI logic to track opponent across the platform
             let targetX = opponent.x;
-            let targetY = opponent.y;
-
             let dx = targetX - fighter.x;
             
-            // Move toward opponent horizontally
             if (Math.abs(dx) > 30) {
                 fighter.vx += Math.sign(dx) * 0.8;
             }
-            fighter.vx *= 0.85; // friction
+            fighter.vx *= 0.85;
 
-            // Cap horizontal speed
             fighter.vx = Math.max(-12, Math.min(12, fighter.vx));
             fighter.x += fighter.vx;
 
-            // Gravity & Platform collision
-            fighter.vy += 0.8; // gravity
+            fighter.vy += 0.8;
             fighter.y += fighter.vy;
 
-            // Check landing on platform
             let onPlatform = (
                 fighter.x + size > 750 &&
                 fighter.x < 750 + 1500 &&
@@ -311,13 +297,11 @@
             if (onPlatform) {
                 fighter.y = 950 - size;
                 fighter.vy = 0;
-                // Random tactical jump
                 if (Math.random() < 0.015) {
                     fighter.vy = -16;
                 }
             }
 
-            // Fall off penalty check (below platform y=1050)
             if (fighter.y > 1550) {
                 fighter.hp -= 30;
                 if (fighter.hp < 0) fighter.hp = 0;
@@ -325,13 +309,11 @@
                 updateHUD();
                 checkWin();
 
-                // Respawn back onto platform safely
                 fighter.y = 800;
                 fighter.vy = -10;
                 fighter.x = 1200 + (Math.random() * 600 - 300);
             }
 
-            // World boundary constraints
             if (fighter.x < 50) { fighter.x = 50; fighter.vx *= -1; }
             if (fighter.x > worldWidth - size - 50) { fighter.x = worldWidth - size - 50; fighter.vx *= -1; }
         }
@@ -339,17 +321,14 @@
         function updateGame() {
             if (!gameRunning) return;
 
-            // Update Bot AIs
             updateBotAI(f1, f2);
             updateBotAI(f2, f1);
 
-            // Fighter-to-Fighter Collision & Attacks
             let dx = (f1.x + size/2) - (f2.x + size/2);
             let dy = (f1.y + size/2) - (f2.y + size/2);
             let distance = Math.hypot(dx, dy);
 
             if (distance < size) {
-                // Apply Knockback bounce away from each other
                 let angle = Math.atan2(dy, dx);
                 f1.vx = Math.cos(angle) * 15;
                 f1.vy = -8;
@@ -360,7 +339,6 @@
                 triggerRandomAttack(attacker);
             }
 
-            // Update Projectiles
             for (let i = projectiles.length - 1; i >= 0; i--) {
                 let p = projectiles[i];
                 p.x += p.vx;
@@ -373,7 +351,7 @@
 
                 if (tDist < size/2) {
                     target.hp -= p.damage;
-                    target.vy -= p.kb * 0.4; // knockback from projectile
+                    target.vy -= p.kb * 0.4;
                     if (target.hp < 0) target.hp = 0;
                     showWorldText(target.x, target.y, `Hit! (-${p.damage})`);
                     updateHUD();
@@ -386,7 +364,6 @@
                 }
             }
 
-            // Render Positions
             f1.el.style.left = f1.x + 'px';
             f1.el.style.top = f1.y + 'px';
             f2.el.style.left = f2.x + 'px';
